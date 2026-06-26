@@ -787,226 +787,36 @@ function scheduleRefresh() {
 }
 
 // ===== LEER RESULTADOS DEL GOOGLE SHEET =====
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados';
+const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
 async function fetchSheetResults() {
   try {
-    const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
-    if (!res.ok) return;
-    const data = await res.json();
-    // Mezclar con resultados fijos (el sheet tiene prioridad sobre los hardcoded pendientes)
-    Object.keys(data).forEach(k => {
-      const idx = parseInt(k);
-      // Solo actualizar si el partido no tiene resultado fijo ya
-      if (!partidos[idx]?.res) {
-        savedRes[k] = data[k];
+    // Lee el CSV del Sheet (funciona sin CORS porque es publico)
+    const r = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+    if (!r.ok) return;
+    const text = await r.text();
+    const lines = text.trim().split('\n');
+    // Formato: idx, partido, local, visita
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].replace(/"/g,'').split(',');
+      if (cols.length >= 4 && cols[0] !== '') {
+        const idx = parseInt(cols[0]);
+        const lg = parseInt(cols[2]);
+        const vg = parseInt(cols[3]);
+        if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
+          // Solo actualizar partidos sin resultado fijo
+          if (!partidos[idx]?.res) {
+            savedRes[String(idx)] = [lg, vg];
+          }
+        }
       }
-    });
-    console.log('✅ Sheet leído:', Object.keys(data).length, 'resultados');
+    }
     renderAll();
+    console.log('Sheet leido OK');
   } catch(e) {
     console.warn('Sheet no disponible:', e.message);
   }
-}
-
-// ===== API EN VIVO =====
-// Mapeo: nombre en la quiniela -> nombre en inglés que usa la API
-const TEAM_MAP = {
-  'Suiza':'Switzerland', 'Canada':'Canada', 'Bosnia':'Bosnia and Herzegovina',
-  'Catar':'Qatar', 'Marruecos':'Morocco', 'Haiti':'Haiti',
-  'Escocia':'Scotland', 'Brasil':'Brazil', 'Sudafrica':'South Africa',
-  'Corea del Sur':'South Korea', 'Rep. Checa':'Czechia', 'Mexico':'Mexico',
-  'Curazao':'Curaçao', 'Costa de Marfil':"Côte d'Ivoire", 'Ecuador':'Ecuador',
-  'Alemania':'Germany', 'Tunez':'Tunisia', 'Holanda':'Netherlands',
-  'Japon':'Japan', 'Suecia':'Sweden', 'Turkia':'Türkiye', 'Usa':'United States',
-  'Paraguay':'Paraguay', 'Australia':'Australia', 'Noruega':'Norway',
-  'Francia':'France', 'Senegal':'Senegal', 'Irak':'Iraq',
-  'Cabo Verde':'Cape Verde', 'Arabia Saudita':'Saudi Arabia',
-  'Uruguay':'Uruguay', 'España':'Spain', 'N. Zelanda':'New Zealand',
-  'Belgica':'Belgium', 'Egipto':'Egypt', 'Iran':'Iran',
-  'Panama':'Panama', 'Inglaterra':'England', 'Croacia':'Croatia',
-  'Ghana':'Ghana', 'Colombia':'Colombia', 'Portugal':'Portugal',
-  'Congo':'DR Congo', 'Uzbekistan':'Uzbekistan', 'Argelia':'Algeria',
-  'Austria':'Austria', 'Jordania':'Jordan', 'Argentina':'Argentina',
-};
-
-// Resultados en vivo obtenidos de la API
-let liveData = {}; // key: "LocalEN vs VisitEN" -> {homeScore, awayScore, status, minute}
-
-// Función para normalizar nombre
-function normEN(name) {
-  // Normaliza variantes comunes
-  const norm = {
-    "Türkiye": "Türkiye", "Turkey": "Türkiye",
-    "USA": "United States", "US": "United States",
-    "South Korea": "South Korea", "Korea Republic": "South Korea",
-    "Ivory Coast": "Côte d'Ivoire", "Cote d'Ivoire": "Côte d'Ivoire",
-    "Czech Republic": "Czechia", "Czechia": "Czechia",
-    "DR Congo": "DR Congo", "Congo DR": "DR Congo", "Democratic Republic of Congo": "DR Congo",
-    "New Zealand": "New Zealand",
-    "Bosnia & Herzegovina": "Bosnia and Herzegovina",
-    "Cape Verde": "Cape Verde", "Cabo Verde": "Cape Verde",
-    "Curacao": "Curaçao", "Curaçao": "Curaçao",
-  };
-  return norm[name] || name;
-}
-
-async function fetchLiveScores() {
-  // Intentar con worldcup26.ir (sin key, gratis)
-  const urls = [
-    'https://worldcup26.ir/get/games',
-  ];
-  
-  for (const url of urls) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timer);
-      if (!res.ok) continue;
-      const data = await res.json();
-      
-      // data puede ser un array de partidos
-      const games = Array.isArray(data) ? data : (data.games || data.matches || data.data || []);
-      
-      liveData = {};
-      games.forEach(g => {
-        const home = normEN(g.home_team || g.homeTeam || g.home || '');
-        const away = normEN(g.away_team || g.awayTeam || g.away || '');
-        const status = (g.status || g.state || '').toUpperCase();
-        const homeScore = g.home_score ?? g.homeScore ?? g.score_home ?? g.goals_home ?? null;
-        const awayScore = g.away_score ?? g.awayScore ?? g.score_away ?? g.goals_away ?? null;
-        const minute = g.minute || g.match_time || null;
-        
-        if (home && away) {
-          const key = `${home}|${away}`;
-          liveData[key] = { homeScore, awayScore, status, minute };
-        }
-      });
-      
-      console.log(`✅ API live: ${Object.keys(liveData).length} partidos cargados`);
-      return true;
-    } catch(e) {
-      console.warn('API falló:', url, e.message);
-    }
-  }
-  return false;
-}
-
-// Obtener resultado de API para un partido de la quiniela
-function getAPIResult(idx) {
-  const p = partidos[idx];
-  const homeEN = normEN(TEAM_MAP[p.local] || p.local);
-  const awayEN = normEN(TEAM_MAP[p.visit] || p.visit);
-  const key = `${homeEN}|${awayEN}`;
-  return liveData[key] || null;
-}
-
-// Override de getMatchStatus para usar datos de la API
-const _originalGetMatchStatus = getMatchStatus;
-function getMatchStatusLive(idx) {
-  // 1. Resultado manual del usuario tiene prioridad
-  if (savedRes[`p${idx}`]) return { state:'fin', res: savedRes[`p${idx}`] };
-  
-  // 2. Resultado fijo en el código
-  if (partidos[idx].res) return { state:'fin', res: partidos[idx].res };
-  
-  // 3. Datos de la API en vivo
-  const api = getAPIResult(idx);
-  if (api) {
-    const st = api.status;
-    const hasScore = api.homeScore !== null && api.awayScore !== null;
-    
-    if (['FT','FINISHED','FULL_TIME','AET','PEN'].some(s => st.includes(s)) && hasScore) {
-      return { state:'fin', res: [api.homeScore, api.awayScore] };
-    }
-    if (['LIVE','IN_PLAY','HT','1H','2H','ET'].some(s => st.includes(s))) {
-      return { state:'live', min: api.minute || '?', homeScore: api.homeScore, awayScore: api.awayScore };
-    }
-  }
-  
-  // 4. Lógica por tiempo
-  const now = Date.now();
-  const kick = new Date(partidos[idx].kickoff).getTime();
-  const end  = kick + MATCH_DUR;
-  if (now >= kick && now < end) return { state:'live', min: Math.floor((now-kick)/60000), homeScore: null, awayScore: null };
-  if (now < kick) return { state:'pronto', kick };
-  return { state:'sin-res' };
-}
-
-// Sobreescribir la función getMatchStatus global
-function getMatchStatus(idx) { return getMatchStatusLive(idx); }
-
-// Render de partidos actualizado para mostrar marcador en vivo de la API
-const _origRenderPartidos = renderPartidos;
-function renderPartidos() {
-  document.getElementById('partidos-grid').innerHTML = partidos.map((p,i)=>{
-    const st = getMatchStatus(i);
-    const res = st.state==='fin' ? st.res : null;
-    let statusLabel, statusClass, lg, vg, pulse='', liveScore='';
-
-    if (st.state==='fin') {
-      statusLabel='Finalizado ✓'; statusClass='status-end'; lg=res[0]; vg=res[1];
-    } else if (st.state==='live') {
-      const min = typeof st.min === 'number' ? `${st.min}'` : `${st.min}'`;
-      statusLabel=min; statusClass='status-live';
-      lg = st.homeScore !== null ? st.homeScore : '–';
-      vg = st.awayScore !== null ? st.awayScore : '–';
-      pulse='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rojo);margin-right:5px;animation:pulse 1s infinite"></span>';
-    } else if (st.state==='sin-res') {
-      statusLabel='Por confirmar'; statusClass='status-soon'; lg='–'; vg='–';
-    } else {
-      const hora = new Date(p.kickoff).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'});
-      statusLabel=hora+' CDM'; statusClass='status-soon'; lg='–'; vg='–';
-    }
-
-    const golesColor = st.state==='live' ? 'var(--rojo)' : 'var(--verde)';
-    const chips = JUGADORES.map(n=>{
-      const pro=pronosticos[n]?.[i]; if(!pro) return '';
-      const pts=res?calcPts(pro[0],pro[1],res[0],res[1]):null;
-      const cls=pts===2?'pro-exact':pts===1?'pro-winner':pts===0?'pro-miss':'pro-pending';
-      const icon=pts===2?'✓✓':pts===1?'✓':pts===0?'✗':'·';
-      return `<div class="pro-chip ${cls}">${icon} ${n.split(' ')[0]} ${pro[0]}-${pro[1]}</div>`;
-    }).join('');
-
-    const inputHtml = st.state!=='fin' ? `
-      <div class="resultado-input">
-        <label>Resultado real:</label>
-        <input class="score-input" type="number" min="0" max="20" id="l${i}" placeholder="0">
-        <span class="score-sep">–</span>
-        <input class="score-input" type="number" min="0" max="20" id="v${i}" placeholder="0">
-        <button class="guardar-btn" onclick="guardar(${i})">Guardar</button>
-      </div>` : '';
-
-    return `<div class="partido-card">
-      <div class="partido-header">
-        <div class="partido-nombre">P${i+1} · ${p.local} vs ${p.visit}</div>
-        <div class="partido-status ${statusClass}">${pulse}${statusLabel}</div>
-      </div>
-      <div class="partido-marcador">
-        <div class="equipo">
-          <div class="equipo-nombre">${p.local}</div>
-          <div class="goles" style="color:${golesColor}">${lg}</div>
-        </div>
-        <div class="vs">VS</div>
-        <div class="equipo">
-          <div class="goles" style="color:${golesColor}">${vg}</div>
-          <div class="equipo-nombre">${p.visit}</div>
-        </div>
-      </div>
-      ${inputHtml}
-      <div class="pronosticos-list">
-        <div class="pro-titulo">Pronósticos (${JUGADORES.length})</div>
-        <div class="pro-items">${chips}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// Ciclo principal con API
-async function refreshWithAPI() {
-  await fetchLiveScores();
-  renderAll();
 }
 
 // ===== INIT =====

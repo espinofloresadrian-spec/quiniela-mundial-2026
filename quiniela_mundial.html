@@ -504,6 +504,9 @@
   <div class="tab active" onclick="showTab('general')">🏆 Tabla General</div>
   <div class="tab" onclick="showTab('fase3')">⚽ Fase 3</div>
   <div class="tab" onclick="showTab('partidos')">📊 Partidos</div>
+  <div class="tab" onclick="showTab('16vos')">⚔️ 16vos</div>
+  <div class="tab" onclick="showTab('8vos')">🏆 8vos</div>
+  <div class="tab" onclick="showTab('final')">🌟 Final</div>
 </div>
 
 <main>
@@ -560,6 +563,37 @@
   </div>
   <div class="partidos-grid" id="partidos-grid"></div>
 </section>
+
+
+  <!-- TAB 16VOS -->
+  <div id="tab-16vos" class="section">
+    <div style="overflow-x:auto;padding:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead id="thead-16vos"></thead>
+        <tbody id="tbody-16vos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 8VOS -->
+  <div id="tab-8vos" class="section">
+    <div style="overflow-x:auto;padding:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead id="thead-8vos"></thead>
+        <tbody id="tbody-8vos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB FINAL -->
+  <div id="tab-final" class="section">
+    <div style="overflow-x:auto;padding:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead id="thead-final"></thead>
+        <tbody id="tbody-final"></tbody>
+      </table>
+    </div>
+  </div>
 
 </main>
 
@@ -813,12 +847,12 @@ function renderPartidos() {
 function recalcular() { renderAll(); }
 
 function showTab(tab) {
-  document.querySelectorAll('.section, .tab-content').forEach(s=>s.style.display='none');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   const el = document.getElementById('tab-'+tab);
-  if (el) { el.style.display='block'; el.classList.add('active'); }
+  if (el) el.classList.add('active');
   if (event && event.target) event.target.classList.add('active');
-  // Cargar fases nuevas
+  // Cargar fases nuevas al hacer click
   if (tab==='16vos') renderTab16vos();
   else if (tab==='8vos') renderTab8vos();
   else if (tab==='final') renderTabFinal();

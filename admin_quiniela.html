@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Admin Quiniela ⚽</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f0a; --card: #1a231a; --border: #2a3a2a;
+  --verde: #00C853; --rojo: #FF1744; --amarillo: #FFD600;
+  --text: #e8f5e9; --muted: #6b8f6b;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+
+header {
+  background: #0d1f0d; border-bottom: 2px solid var(--verde);
+  padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 16px; font-weight: 700; color: var(--verde); letter-spacing: 1px; }
+.logo span { color: var(--amarillo); }
+.sync-btn {
+  background: var(--verde); color: #000; border: none; border-radius: 20px;
+  padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.sync-btn:active { opacity: 0.8; transform: scale(0.97); }
+
+.status-bar {
+  background: #111; padding: 8px 16px; font-size: 12px;
+  color: var(--muted); display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--verde); flex-shrink: 0; }
+.status-dot.error { background: var(--rojo); }
+.status-dot.loading { background: var(--amarillo); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.filter-tabs {
+  display: flex; overflow-x: auto; padding: 12px 16px; gap: 8px;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.filter-tabs::-webkit-scrollbar { display: none; }
+.ftab {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px; font-size: 13px;
+  font-weight: 600; border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.ftab.active { background: var(--verde); color: #000; border-color: var(--verde); }
+
+.matches { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.match-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; transition: all 0.2s;
+}
+.match-card.live { border-color: var(--rojo); box-shadow: 0 0 12px rgba(255,23,68,0.2); }
+.match-card.done { border-color: rgba(0,200,83,0.3); }
+
+.match-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+}
+.match-num { font-size: 11px; color: var(--muted); font-weight: 600; }
+.match-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px;
+}
+.badge-live { background: rgba(255,23,68,0.2); color: var(--rojo); }
+.badge-done { background: rgba(0,200,83,0.15); color: var(--verde); }
+.badge-soon { background: rgba(255,214,0,0.15); color: var(--amarillo); }
+
+.match-body { padding: 12px 14px; }
+.teams-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.team-name { flex: 1; font-size: 14px; font-weight: 600; text-align: center; }
+.vs-text { font-size: 11px; color: var(--muted); font-weight: 700; flex-shrink: 0; }
+
+.score-row {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.score-input {
+  width: 56px; height: 56px; border-radius: 12px; text-align: center;
+  font-size: 24px; font-weight: 700; font-family: inherit;
+  background: #0d1a0d; border: 2px solid var(--border); color: var(--verde);
+  outline: none; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.2s;
+}
+.score-input:focus { border-color: var(--verde); background: #111f11; }
+.score-input.filled { border-color: rgba(0,200,83,0.5); }
+.score-sep { font-size: 20px; font-weight: 700; color: var(--muted); }
+
+.save-btn {
+  width: 100%; margin-top: 12px; padding: 12px; border-radius: 10px;
+  background: var(--verde); color: #000; border: none; font-size: 15px;
+  font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.save-btn:active { transform: scale(0.98); opacity: 0.9; }
+.save-btn.saved { background: #1a3a1a; color: var(--verde); border: 1px solid var(--verde); }
+.save-btn.saving { background: var(--amarillo); color: #000; }
+
+.saved-score {
+  text-align: center; padding: 8px; font-size: 22px; font-weight: 700;
+  color: var(--verde); letter-spacing: 2px;
+}
+.edit-btn {
+  width: 100%; margin-top: 8px; padding: 8px; border-radius: 10px;
+  background: transparent; color: var(--muted); border: 1px solid var(--border);
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+
+.hora-text { font-size: 12px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #0d1a0d; border-top: 1px solid var(--border);
+  display: flex; padding: 8px 16px 12px;
+  gap: 8px;
+}
+.nav-btn {
+  flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit; text-align: center;
+}
+.nav-btn.active { background: rgba(0,200,83,0.1); color: var(--verde); border-color: var(--verde); }
+
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--verde); color: #000; padding: 10px 20px; border-radius: 20px;
+  font-size: 14px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--rojo); color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ADMIN <span>QUINIELA</span> ⚽</div>
+  <button class="sync-btn" onclick="saveAllToSheet()">💾 Guardar Sheet</button>
+</header>
+
+<div class="status-bar">
+  <div class="status-dot" id="status-dot"></div>
+  <span id="status-text">Listo</span>
+</div>
+
+<div class="filter-tabs" id="filter-tabs">
+  <button class="ftab active" onclick="filterMatches('todos',this)">Todos</button>
+  <button class="ftab" onclick="filterMatches('pendiente',this)">Pendientes</button>
+  <button class="ftab" onclick="filterMatches('live',this)">🔴 En vivo</button>
+  <button class="ftab" onclick="filterMatches('done',this)">✅ Finalizados</button>
+</div>
+
+<div class="matches" id="matches-container"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIGURACIÓN =====
+// TU Google Sheet ID (el que ya tienes público)
+const SHEET_ID = '1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo';
+// Nombre de la hoja donde guardarás resultados (debes crearla)
+const SHEET_NAME = 'Resultados';
+
+const MATCH_DUR = 115 * 60 * 1000;
+
+const partidos = [
+  { id:0,  local:'Suiza',      visit:'Canada',         kickoff:'2026-06-25T01:00:00Z' },
+  { id:1,  local:'Bosnia',     visit:'Catar',          kickoff:'2026-06-25T01:00:00Z' },
+  { id:2,  local:'Marruecos',  visit:'Haiti',          kickoff:'2026-06-25T01:00:00Z' },
+  { id:3,  local:'Escocia',    visit:'Brasil',         kickoff:'2026-06-26T00:00:00Z' },
+  { id:4,  local:'Sudafrica',  visit:'Corea del Sur',  kickoff:'2026-06-26T00:00:00Z' },
+  { id:5,  local:'Rep. Checa', visit:'Mexico',         kickoff:'2026-06-26T00:00:00Z' },
+  { id:6,  local:'Curazao',    visit:'C. Marfil',      kickoff:'2026-06-25T20:00:00Z' },
+  { id:7,  local:'Ecuador',    visit:'Alemania',       kickoff:'2026-06-25T20:00:00Z' },
+  { id:8,  local:'Tunez',      visit:'Holanda',        kickoff:'2026-06-26T01:00:00Z' },
+  { id:9,  local:'Japon',      visit:'Suecia',         kickoff:'2026-06-26T01:00:00Z' },
+  { id:10, local:'Turkia',     visit:'USA',            kickoff:'2026-06-26T04:00:00Z' },
+  { id:11, local:'Paraguay',   visit:'Australia',      kickoff:'2026-06-26T04:00:00Z' },
+  { id:12, local:'Noruega',    visit:'Francia',        kickoff:'2026-06-26T19:00:00Z' },
+  { id:13, local:'Senegal',    visit:'Irak',           kickoff:'2026-06-26T19:00:00Z' },
+  { id:14, local:'Cabo Verde', visit:'Arabia Saudita', kickoff:'2026-06-27T00:00:00Z' },
+  { id:15, local:'Uruguay',    visit:'España',         kickoff:'2026-06-27T00:00:00Z' },
+  { id:16, local:'N. Zelanda', visit:'Belgica',        kickoff:'2026-06-27T03:00:00Z' },
+  { id:17, local:'Egipto',     visit:'Iran',           kickoff:'2026-06-27T03:00:00Z' },
+  { id:18, local:'Panama',     visit:'Inglaterra',     kickoff:'2026-06-27T21:00:00Z' },
+  { id:19, local:'Croacia',    visit:'Ghana',          kickoff:'2026-06-27T21:00:00Z' },
+  { id:20, local:'Colombia',   visit:'Portugal',       kickoff:'2026-06-28T23:30:00Z' },
+  { id:21, local:'Congo',      visit:'Uzbekistan',     kickoff:'2026-06-28T23:30:00Z' },
+  { id:22, local:'Argelia',    visit:'Austria',        kickoff:'2026-06-29T02:00:00Z' },
+  { id:23, local:'Jordania',   visit:'Argentina',      kickoff:'2026-06-29T02:00:00Z' },
+];
+
+// Resultados ya conocidos (hardcoded)
+const resFixed = {
+  0:[2,1], 1:[3,1], 2:[4,2], 3:[0,3], 4:[1,0], 5:[0,3],
+  6:[0,2], 7:[2,1], 8:[1,3], 9:[1,1], 10:[3,2], 11:[0,0],
+};
+
+// Resultados ingresados por el usuario (localStorage)
+let resUser = JSON.parse(localStorage.getItem('admin_res_v2') || '{}');
+
+let currentFilter = 'todos';
+
+// ===== ESTADO DEL PARTIDO =====
+function getStatus(p) {
+  const now = Date.now();
+  const kick = new Date(p.kickoff).getTime();
+  const end = kick + MATCH_DUR;
+  const res = resUser[p.id] || resFixed[p.id];
+  if (res) return { state:'done', res };
+  if (now >= kick && now < end) return { state:'live', min: Math.floor((now-kick)/60000) };
+  if (now < kick) return { state:'soon', kick };
+  return { state:'sin-res' };
+}
+
+// ===== RENDER =====
+function render() {
+  const container = document.getElementById('matches-container');
+  const now = Date.now();
+
+  let filtered = partidos.filter(p => {
+    const st = getStatus(p);
+    if (currentFilter === 'pendiente') return st.state === 'soon' || st.state === 'sin-res';
+    if (currentFilter === 'live') return st.state === 'live';
+    if (currentFilter === 'done') return st.state === 'done';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">No hay partidos en esta categoría</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => {
+    const st = getStatus(p);
+    const res = st.state === 'done' ? st.res : null;
+    const isEditing = !resFixed[p.id]; // puede editar si no está hardcoded
+
+    let badgeHtml = '', cardClass = '';
+    if (st.state === 'live') {
+      badgeHtml = `<div class="match-badge badge-live">🔴 ${st.min}'</div>`;
+      cardClass = 'live';
+    } else if (st.state === 'done') {
+      badgeHtml = `<div class="match-badge badge-done">✅ FIN</div>`;
+      cardClass = 'done';
+    } else if (st.state === 'soon') {
+      const hora = new Date(p.kickoff).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'});
+      badgeHtml = `<div class="match-badge badge-soon">${hora} CDM</div>`;
+    } else {
+      badgeHtml = `<div class="match-badge badge-soon">Por confirmar</div>`;
+    }
+
+    const bodyHtml = res
+      ? `<div class="saved-score">${res[0]} — ${res[1]}</div>
+         ${!resFixed[p.id] ? `<button class="edit-btn" onclick="editMatch(${p.id})">✏️ Editar resultado</button>` : ''}`
+      : `<div class="score-row">
+          <input class="score-input" type="number" min="0" max="20" id="l${p.id}"
+            placeholder="0" oninput="this.classList.toggle('filled',this.value!=='')">
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" max="20" id="v${p.id}"
+            placeholder="0" oninput="this.classList.toggle('filled',this.value!=='')">
+        </div>
+        <button class="save-btn" onclick="saveMatch(${p.id})" id="btn${p.id}">
+          Guardar resultado
+        </button>`;
+
+    return `<div class="match-card ${cardClass}" id="card${p.id}">
+      <div class="match-header">
+        <div class="match-num">P${p.id+1}</div>
+        ${badgeHtml}
+      </div>
+      <div class="match-body">
+        <div class="teams-row">
+          <div class="team-name">${p.local}</div>
+          <div class="vs-text">VS</div>
+          <div class="team-name">${p.visit}</div>
+        </div>
+        ${bodyHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== GUARDAR RESULTADO LOCAL =====
+function saveMatch(id) {
+  const l = document.getElementById(`l${id}`);
+  const v = document.getElementById(`v${id}`);
+  const lv = parseInt(l?.value);
+  const vv = parseInt(v?.value);
+
+  if (isNaN(lv) || isNaN(vv)) {
+    showToast('⚠️ Ingresa ambos goles', true);
+    return;
+  }
+
+  const btn = document.getElementById(`btn${id}`);
+  btn.textContent = 'Guardando...';
+  btn.classList.add('saving');
+
+  resUser[id] = [lv, vv];
+  localStorage.setItem('admin_res_v2', JSON.stringify(resUser));
+
+  setTimeout(() => {
+    showToast(`✅ P${id+1}: ${lv}-${vv} guardado`);
+    saveToSheet(id, lv, vv);
+    render();
+  }, 400);
+}
+
+function editMatch(id) {
+  delete resUser[id];
+  localStorage.setItem('admin_res_v2', JSON.stringify(resUser));
+  render();
+}
+
+// ===== GUARDAR EN GOOGLE SHEET =====
+// Usa Google Apps Script Web App como intermediario gratuito
+// El usuario debe crear el Apps Script y pegar la URL aquí
+const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || '';
+
+async function saveToSheet(id, local, visita) {
+  if (!APPS_SCRIPT_URL) return; // Sin URL configurada, solo local
+  try {
+    const partido = partidos[id];
+    const payload = {
+      partido: `${partido.local} vs ${partido.visit}`,
+      local, visita,
+      idx: id
+    };
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    setStatus('Sincronizado con Sheet ✓', false);
+  } catch(e) {
+    setStatus('Solo guardado local (sin Sheet)', true);
+  }
+}
+
+async function saveAllToSheet() {
+  if (!APPS_SCRIPT_URL) {
+    // Mostrar configuración
+    showConfig();
+    return;
+  }
+  setStatus('Sincronizando...', false, true);
+  let ok = 0;
+  for (const [id, res] of Object.entries(resUser)) {
+    await saveToSheet(parseInt(id), res[0], res[1]);
+    ok++;
+  }
+  showToast(`✅ ${ok} resultados sincronizados`);
+  setStatus(`Sincronizado: ${ok} resultados`, false);
+}
+
+// ===== EXPORTAR COMO TEXTO (para copiar y pegar) =====
+function exportResults() {
+  const all = {...resFixed, ...resUser};
+  let txt = '📊 RESULTADOS QUINIELA FASE 3\n\n';
+  partidos.forEach(p => {
+    const res = all[p.id];
+    txt += `P${p.id+1} ${p.local} vs ${p.visit}: ${res ? res[0]+'-'+res[1] : 'Pendiente'}\n`;
+  });
+  txt += `\nActualizado: ${new Date().toLocaleString('es-MX')}`;
+
+  if (navigator.share) {
+    navigator.share({ text: txt, title: 'Resultados Quiniela Mundial 2026' });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(() => showToast('📋 Copiado al portapapeles'));
+  }
+}
+
+// ===== CONFIGURACIÓN APPS SCRIPT =====
+function showConfig() {
+  const url = prompt(
+    'Para sincronizar con Google Sheet, pega la URL de tu Google Apps Script:\n\n' +
+    '(Si no la tienes, los resultados se guardan solo en este dispositivo)',
+    APPS_SCRIPT_URL
+  );
+  if (url !== null) {
+    localStorage.setItem('apps_script_url', url);
+    showToast('✅ URL guardada');
+  }
+}
+
+// ===== HELPERS =====
+function filterMatches(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function setStatus(msg, isError = false, isLoading = false) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot' + (isError ? ' error' : isLoading ? ' loading' : '');
+  txt.textContent = msg;
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '') + ' show';
+  setTimeout(() => t.className = 'toast' + (isError ? ' error' : ''), 2500);
+}
+
+// ===== INIT =====
+render();
+
+// Actualizar estado en vivo cada 30s
+setInterval(() => { render(); }, 30000);
+
+// Mostrar info de cómo exportar
+const exportBtn = document.createElement('button');
+exportBtn.className = 'nav-btn';
+exportBtn.innerHTML = '📤 Exportar';
+exportBtn.onclick = exportResults;
+document.body.appendChild(Object.assign(document.createElement('div'), {
+  className: 'bottom-nav',
+  innerHTML: `
+    <button class="nav-btn" onclick="filterMatches('live', this)">🔴 En vivo</button>
+    <button class="nav-btn active" onclick="exportResults()">📤 Compartir</button>
+    <button class="nav-btn" onclick="showConfig()">⚙️ Config</button>
+  `
+}));
+</script>
+</body>
+</html>

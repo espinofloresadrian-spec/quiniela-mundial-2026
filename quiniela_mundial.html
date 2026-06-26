@@ -617,10 +617,23 @@ function avatar(nombre, idx) {
 }
 
 // ===== RENDER TABLA GENERAL =====
+function calcF3(nombre) {
+  const pros = pronosticos[nombre];
+  if (!pros) return 0;
+  let total = 0;
+  pros.forEach((pro, i) => {
+    const res = getRes(i);
+    if (!res) return;
+    total += calcPts(pro[0], pro[1], res[0], res[1]) || 0;
+  });
+  return total;
+}
+
 function renderGeneral() {
   const rows = JUGADORES.map((n,i) => {
     const a = puntosAnteriores[n];
-    return { n, i, f1:a.f1, f2:a.f2, f3:a.f3, total:a.f1+a.f2+a.f3 };
+    const f3 = calcF3(n);
+    return { n, i, f1:a.f1, f2:a.f2, f3, total:a.f1+a.f2+f3 };
   }).sort((a,b)=>b.total-a.total);
   const max = rows[0]?.total || 1;
   document.getElementById('tbody-general').innerHTML = rows.map((r,pos)=>{
@@ -655,7 +668,8 @@ function renderFase3() {
 
   const rows = JUGADORES.map(n=>{
     const a = puntosAnteriores[n];
-    const total = a.f1+a.f2+a.f3;
+    const f3 = calcF3(n);
+    const total = a.f1+a.f2+f3;
     const celdas = pronosticos[n]?.map((pro,i)=>{
       const res = getRes(i);
       const pts = res ? calcPts(pro[0],pro[1],res[0],res[1]) : null;
@@ -667,7 +681,7 @@ function renderFase3() {
     }).join('')||'';
     return {total, html:`<tr>
       <td style="white-space:nowrap;font-weight:600;font-size:13px">${n}</td>${celdas}
-      <td class="pts-cell" style="color:var(--verde);font-weight:700">${a.f3}</td>
+      <td class="pts-cell" style="color:var(--verde);font-weight:700">${f3}</td>
       <td class="pts-cell"><div class="pts-total">${total}</div></td>
     </tr>`};
   }).sort((a,b)=>b.total-a.total);

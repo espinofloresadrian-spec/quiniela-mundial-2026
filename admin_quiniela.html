@@ -94,10 +94,10 @@ const partidos = [
   {id:17, l:'Egipto',     v:'Iran',           k:'2026-06-27T03:00:00Z'},
   {id:18, l:'Panama',     v:'Inglaterra',     k:'2026-06-27T21:00:00Z'},
   {id:19, l:'Croacia',    v:'Ghana',          k:'2026-06-27T21:00:00Z'},
-  {id:20, l:'Colombia',   v:'Portugal',       k:'2026-06-28T23:30:00Z'},
-  {id:21, l:'Congo',      v:'Uzbekistan',     k:'2026-06-28T23:30:00Z'},
-  {id:22, l:'Argelia',    v:'Austria',        k:'2026-06-29T02:00:00Z'},
-  {id:23, l:'Jordania',   v:'Argentina',      k:'2026-06-29T02:00:00Z'},
+  {id:20, l:'Colombia',   v:'Portugal',       k:'2026-06-28T00:30:00Z'},
+  {id:21, l:'Congo',      v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
+  {id:22, l:'Argelia',    v:'Austria',        k:'2026-06-28T03:00:00Z'},
+  {id:23, l:'Jordania',   v:'Argentina',      k:'2026-06-28T03:00:00Z'},
 ];
 
 const fixed = {0:[2,1],1:[3,1],2:[4,2],3:[0,3],4:[1,0],5:[0,3],6:[0,2],7:[2,1],8:[1,3],9:[1,1],10:[3,2],11:[0,0]};
@@ -108,8 +108,16 @@ function getState(p) {
   const res = local[p.id] !== undefined ? local[p.id] : fixed[p.id];
   if (res) return {s:'done', res};
   if (now >= kick && now < end) return {s:'live', min: Math.floor((now-kick)/60000)};
+  if (now > end && !res) return {s:'nodata'}; // termino sin resultado
   if (now < kick) return {s:'soon', kick};
-  return {s:'nodata'};
+  return {s:'soon', kick};
+}
+
+function canEdit(p) {
+  // Admin solo puede editar si el partido ya empezo o ya termino
+  const now = Date.now();
+  const kick = new Date(p.k).getTime();
+  return now >= kick;
 }
 
 function render() {
@@ -134,9 +142,12 @@ function render() {
       const h=new Date(p.k).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'});
       badge='<div class="badge b-soon">'+h+' CDM</div>';
     }
+    const editable = canEdit(p);
     const body = st.res
-      ? '<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>'+'<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>'
-      : '<div class="score-row"><input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0"><span class="ssep">-</span><input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0"></div><button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>';
+      ? '<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>'+(editable?'<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>':'')
+      : editable
+        ? '<div class="score-row"><input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0"><span class="ssep">-</span><input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0"></div><button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>'
+        : '<div style="text-align:center;padding:12px;color:#6b8f6b;font-size:13px">Aun no ha comenzado</div>';
     return '<div class="card '+cardCls+'"><div class="card-head"><div class="card-num">P'+(p.id+1)+'</div>'+badge+'</div><div class="card-body"><div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'+body+'</div></div>';
   }).join('');
 }

@@ -638,7 +638,7 @@ function getMatchStatus(idx) {
   const kick = new Date(p.kickoff).getTime();
   const end  = kick + MATCH_DUR;
   // Resultado manual > resultado oficial > estado por tiempo
-  const res = savedRes[`p${idx}`] || p.res;
+  const res = savedRes[String(idx)] || savedRes['p'+idx] || p.res;
   if (res) return { state:'fin', res };
   if (now >= kick && now < end) return { state:'live', min: Math.floor((now-kick)/60000) };
   if (now < kick) return { state:'pronto', kick };

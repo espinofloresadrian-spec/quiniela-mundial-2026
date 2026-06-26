@@ -442,10 +442,6 @@
     /* Fase 3 tabla - scroll horizontal */
     #tab-fase3 .tabla-wrap { overflow-x: auto; }
     #tbody-fase3 td, #thead-fase3 th { font-size: 10px; padding: 6px 4px; min-width: 52px; }
-#tbody-fase3 td:first-child, #thead-fase3 th:first-child { 
-  position: sticky; left: 0; background: var(--card); z-index: 2; 
-  font-weight: 600; min-width: 90px; border-right: 1px solid var(--border);
-}
 
     /* Marcador grande en mobile */
     .goles { font-size: 2rem !important; }
@@ -473,6 +469,25 @@
     .tab { padding: 10px 10px; font-size: 11px; }
     th, td { padding: 6px 5px; }
   }
+
+  /* Fases nuevas */
+  .fase-table th, .fase-table td {
+    padding: 6px 8px; border-bottom: 1px solid var(--border);
+    text-align: center; white-space: nowrap; min-width: 60px;
+  }
+  .fase-table th:first-child, .fase-table td:first-child {
+    position: sticky; left: 0; background: var(--card); z-index: 2;
+    font-weight: 600; min-width: 100px; text-align: left;
+    border-right: 1px solid var(--border);
+  }
+  .fase-table thead th { background: var(--card-alt, #1a2a1a); color: var(--muted); font-size: 10px; }
+  .fase-table thead th:first-child { background: var(--card-alt, #1a2a1a); }
+  .fase-table .pro-exact { background: rgba(0,200,83,0.25); color: var(--verde); font-weight:700; border-radius:4px; }
+  .fase-table .pro-winner { background: rgba(255,214,0,0.2); color: #FFD600; border-radius:4px; }
+  .fase-table .pro-miss { background: rgba(255,23,68,0.1); color: var(--muted); border-radius:4px; }
+  .fase-table .pro-pending { color: var(--muted); }
+  .fase-table .resultado-row { background: rgba(0,200,83,0.08); font-weight:700; color: var(--verde); }
+  .fase-seccion { background: rgba(0,200,83,0.1); color: var(--verde); font-size:11px; font-weight:700; text-align:center; padding: 4px; }
 </style>
 </head>
 <body>
@@ -596,10 +611,10 @@ const partidos = [
   { local:'Egipto',     visit:'Iran',            kickoff:'2026-06-27T03:00:00Z', res:null  },
   { local:'Panama',     visit:'Inglaterra',      kickoff:'2026-06-27T21:00:00Z', res:null  },
   { local:'Croacia',    visit:'Ghana',           kickoff:'2026-06-27T21:00:00Z', res:null  },
-  { local:'Colombia',   visit:'Portugal',        kickoff:'2026-06-28T23:30:00Z', res:null  },
-  { local:'Congo',      visit:'Uzbekistan',      kickoff:'2026-06-28T23:30:00Z', res:null  },
-  { local:'Argelia',    visit:'Austria',         kickoff:'2026-06-29T02:00:00Z', res:null  },
-  { local:'Jordania',   visit:'Argentina',       kickoff:'2026-06-29T02:00:00Z', res:null  },
+  { local:'Colombia',   visit:'Portugal',        kickoff:'2026-06-28T00:30:00Z', res:null  },
+  { local:'Congo',      visit:'Uzbekistan',      kickoff:'2026-06-28T00:30:00Z', res:null  },
+  { local:'Argelia',    visit:'Austria',         kickoff:'2026-06-28T03:00:00Z', res:null  },
+  { local:'Jordania',   visit:'Argentina',       kickoff:'2026-06-28T03:00:00Z', res:null  },
 ];
 
 // Pronósticos del Google Sheet (fila par=local, impar=visitante)
@@ -627,13 +642,9 @@ const pronosticos = {
 };
 
 // Resultados manuales guardados por usuario
-const savedRes = JSON.parse(localStorage.getItem('qm2026_res') || '{}');
-// También leer resultados ingresados desde la app admin
-const adminRes = JSON.parse(localStorage.getItem('admin_res_v2') || '{}');
-// Mezclar ambas fuentes (qm2026_res tiene prioridad)
-Object.keys(adminRes).forEach(k => {
-  if (!savedRes[k]) savedRes[k] = adminRes[k];
-});
+// Resultados vienen SOLO del Sheet via Apps Script
+// No usamos localStorage para resultados - el Sheet es la fuente de verdad
+const savedRes = {};
 
 // ===== LÓGICA EN VIVO =====
 function getMatchStatus(idx) {
@@ -641,7 +652,7 @@ function getMatchStatus(idx) {
   const now = Date.now();
   const kick = new Date(p.kickoff).getTime();
   const end  = kick + MATCH_DUR;
-  // Resultado manual > resultado oficial > estado por tiempo
+  // Sheet tiene prioridad - buscar con y sin prefijo "p"
   const res = savedRes[String(idx)] || savedRes['p'+idx] || p.res;
   if (res) return { state:'fin', res };
   if (now >= kick && now < end) return { state:'live', min: Math.floor((now-kick)/60000) };
@@ -759,10 +770,10 @@ function renderPartidos() {
     } else if (st.state==='sin-res') {
       statusLabel='Por confirmar'; statusClass='status-soon'; lg='–'; vg='–';
     } else {
-     const kd2 = new Date(p.kickoff);
-const dia = kd2.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'});
-const hora = kd2.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
-statusLabel=dia+' '+hora+' PDT'; statusClass='status-soon'; lg='-'; vg='-';
+      const kd2 = new Date(p.kickoff);
+      const dia = kd2.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'});
+      const hora = kd2.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
+      statusLabel=dia+' '+hora+' PDT'; statusClass='status-soon'; lg='–'; vg='–';
     }
 
     const chips = JUGADORES.map(n=>{
@@ -845,13 +856,18 @@ function scheduleRefresh() {
 }
 
 // ===== LEER RESULTADOS DEL GOOGLE SHEET =====
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados';
 const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
 async function fetchSheetResults() {
   try {
     // Leer resultados del Apps Script via GET (JSON directo)
-    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
+    // Forzar no-cache siempre
+const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now() + '&r=' + Math.random(), {
+  cache: 'no-store',
+  headers: { 'Cache-Control': 'no-cache' }
+});
     if (!r.ok) return;
     const data = await r.json();
     let updated = false;
@@ -912,6 +928,201 @@ refreshWithAPI().then(() => {
   }
   setTimeout(apiLoop, getRefreshMs());
 });
+
+
+// ===== FASES NUEVAS: 16VOS, 8VOS, FASE FINAL =====
+
+const SHEET_16VOS = 'https://docs.google.com/spreadsheets/d/1nVUUtcXsV0mcRK-H3dFzB4Hf9V7SwhnJ2lDg_uIle0U/gviz/tq?tqx=out:csv&gid=2033528907';
+const SHEET_8VOS  = 'https://docs.google.com/spreadsheets/d/1nVUUtcXsV0mcRK-H3dFzB4Hf9V7SwhnJ2lDg_uIle0U/gviz/tq?tqx=out:csv&gid=741571264';
+const SHEET_FINAL = 'https://docs.google.com/spreadsheets/d/1nVUUtcXsV0mcRK-H3dFzB4Hf9V7SwhnJ2lDg_uIle0U/gviz/tq?tqx=out:csv&gid=1525717683';
+
+const JUGADORES_ORD = ['Maluma','Gamez','Vanessa','Ray','Olguin','Pedro','Alonso','Alex','Said','Rafa','Cesar','Don Jorge','Lic Dominguez','Jesus','Luis','Hazael','Espino','Papa Espino','Alejandra','Noe'];
+
+const partidos16 = [
+  {idx:100,l:'Sudafrica', v:'Canada',        k:'2026-06-28T19:00:00Z'},
+  {idx:101,l:'Brasil',    v:'Japon',          k:'2026-06-29T17:00:00Z'},
+  {idx:102,l:'Alemania',  v:'3ro A/B/C/D/F', k:'2026-06-29T20:30:00Z'},
+  {idx:103,l:'Holanda',   v:'Marruecos',     k:'2026-06-30T01:00:00Z'},
+  {idx:104,l:'C. Marfil', v:'Noruega',       k:'2026-06-30T17:00:00Z'},
+  {idx:105,l:'Francia',   v:'3ro C/D/F/G/H', k:'2026-06-30T21:00:00Z'},
+  {idx:106,l:'Mexico',    v:'3ro C/E/F/H/I', k:'2026-07-01T01:00:00Z'},
+  {idx:107,l:'Winner L',  v:'3ro E/H/I/J/K', k:'2026-07-01T16:00:00Z'},
+  {idx:108,l:'Winner G',  v:'3ro A/E/H/I/J', k:'2026-07-01T20:00:00Z'},
+  {idx:109,l:'USA',       v:'Bosnia',        k:'2026-07-02T00:00:00Z'},
+  {idx:110,l:'Winner H',  v:'Runner-up J',   k:'2026-07-02T19:00:00Z'},
+  {idx:111,l:'Runner K',  v:'Runner L',      k:'2026-07-02T23:00:00Z'},
+  {idx:112,l:'Suiza',     v:'3ro E/F/G/I/J', k:'2026-07-03T03:00:00Z'},
+  {idx:113,l:'Runner D',  v:'Runner G',      k:'2026-07-03T18:00:00Z'},
+  {idx:114,l:'Argentina', v:'Runner H',      k:'2026-07-03T22:00:00Z'},
+  {idx:115,l:'Winner K',  v:'3ro D/E/I/J/L', k:'2026-07-04T01:30:00Z'},
+];
+
+const partidos8 = [
+  {idx:200,l:'Win R32 73',v:'Win R32 75',k:'2026-07-04T17:00:00Z'},
+  {idx:201,l:'Win R32 74',v:'Win R32 76',k:'2026-07-05T17:00:00Z'},
+  {idx:202,l:'Win R32 77',v:'Win R32 79',k:'2026-07-04T21:00:00Z'},
+  {idx:203,l:'Win R32 78',v:'Win R32 80',k:'2026-07-05T21:00:00Z'},
+  {idx:204,l:'Win R32 81',v:'Win R32 83',k:'2026-07-06T17:00:00Z'},
+  {idx:205,l:'Win R32 82',v:'Win R32 84',k:'2026-07-07T17:00:00Z'},
+  {idx:206,l:'Win R32 85',v:'Win R32 87',k:'2026-07-06T21:00:00Z'},
+  {idx:207,l:'Win R32 86',v:'Win R32 88',k:'2026-07-07T21:00:00Z'},
+];
+
+const partidosFinal = [
+  {idx:300,l:'4to 1',v:'4to 2',k:'2026-07-09T17:00:00Z',sec:'Cuartos de Final'},
+  {idx:301,l:'4to 3',v:'4to 4',k:'2026-07-10T17:00:00Z',sec:'Cuartos de Final'},
+  {idx:302,l:'4to 5',v:'4to 6',k:'2026-07-09T21:00:00Z',sec:'Cuartos de Final'},
+  {idx:303,l:'4to 7',v:'4to 8',k:'2026-07-11T17:00:00Z',sec:'Cuartos de Final'},
+  {idx:400,l:'Semi 1',v:'Semi 2',k:'2026-07-14T22:00:00Z',sec:'Semifinales'},
+  {idx:401,l:'Semi 3',v:'Semi 4',k:'2026-07-15T22:00:00Z',sec:'Semifinales'},
+  {idx:500,l:'3er Lugar A',v:'3er Lugar B',k:'2026-07-18T20:00:00Z',sec:'3er Lugar'},
+  {idx:501,l:'Finalista 1',v:'Finalista 2',k:'2026-07-19T19:00:00Z',sec:'FINAL'},
+];
+
+// Resultados de fases nuevas (desde Apps Script idx 100+)
+const resNuevas = {};
+
+// Pronósticos leídos de los Sheets
+let pros16 = {}, pros8 = {}, prosFinal = {};
+
+// Leer CSV de pronósticos nueva fase
+async function leerProsSheet(url) {
+  try {
+    const r = await fetch(url + '&t=' + Date.now());
+    const text = await r.text();
+    const lines = text.trim().split('\n').map(l => l.replace(/"/g,''));
+    // Fila 2 = encabezados de partidos (col B en adelante)
+    // Fila 3 = "Nombre" (skip)
+    // Filas 4,5 = primer jugador (nombre en col A fila par, vacío fila impar)
+    const headers = lines[1].split(',').slice(1); // equipos en columnas
+    const pros = {};
+    for (let i = 3; i < lines.length - 1; i += 2) {
+      const row1 = lines[i].split(',');
+      const row2 = lines[i+1] ? lines[i+1].split(',') : [];
+      const nombre = row1[0].trim();
+      if (!nombre) continue;
+      const pronos = [];
+      for (let j = 1; j < row1.length; j++) {
+        const lg = parseInt(row1[j]);
+        const vg = parseInt(row2[j] || '');
+        if (!isNaN(lg) && !isNaN(vg)) pronos.push([lg, vg]);
+        else pronos.push(null);
+      }
+      pros[nombre] = {headers, pronos};
+    }
+    return pros;
+  } catch(e) {
+    return {};
+  }
+}
+
+function calcPtsNueva(pro, res) {
+  if (!pro || !res) return null;
+  if (pro[0]===res[0] && pro[1]===res[1]) return 2;
+  const proGana = pro[0]>pro[1]?1:pro[0]<pro[1]?-1:0;
+  const resGana = res[0]>res[1]?1:res[0]<res[1]?-1:0;
+  if (proGana===resGana) return 1;
+  return 0;
+}
+
+function renderFaseTabla(tbodyId, theadId, partidos, pros, secciones) {
+  const thead = document.getElementById(theadId);
+  const tbody = document.getElementById(tbodyId);
+  if (!thead || !tbody) return;
+
+  // Header row
+  let hdr = '<tr><th style="position:sticky;left:0;background:#1a2a1a;z-index:3">Jugador</th>';
+  partidos.forEach((p, i) => {
+    const res = resNuevas[String(p.idx)];
+    const label = p.l.split(' ')[0]+' vs '+p.v.split(' ')[0];
+    const resLabel = res ? res[0]+'-'+res[1] : '-';
+    hdr += '<th style="min-width:70px;font-size:10px;background:#1a2a1a">' + label + '<br><span style="color:var(--verde)">' + resLabel + '</span></th>';
+  });
+  hdr += '<th style="background:#1a2a1a;color:var(--verde)">Pts</th></tr>';
+  thead.innerHTML = hdr;
+
+  // Body rows
+  let rows = '';
+  JUGADORES_ORD.forEach(nombre => {
+    const datJug = pros[nombre];
+    let pts = 0;
+    let celdas = '';
+    partidos.forEach((p, i) => {
+      const pro = datJug ? datJug.pronos[i] : null;
+      const res = resNuevas[String(p.idx)];
+      const puntos = calcPtsNueva(pro, res);
+      let cls = 'pro-pending', txt = pro ? pro[0]+'-'+pro[1] : '·';
+      if (puntos === 2) { cls = 'pro-exact'; pts += 2; }
+      else if (puntos === 1) { cls = 'pro-winner'; pts += 1; }
+      else if (puntos === 0) { cls = 'pro-miss'; }
+      celdas += '<td><span class="' + cls + '" style="padding:2px 4px;border-radius:3px;font-size:11px">' + txt + '</span></td>';
+    });
+    rows += '<tr><td style="position:sticky;left:0;background:var(--card);z-index:2;font-weight:600;font-size:12px;border-right:1px solid var(--border)">' + nombre + '</td>' + celdas + '<td style="color:var(--verde);font-weight:700">' + (pros[nombre] ? pts : '·') + '</td></tr>';
+  });
+  tbody.innerHTML = rows;
+}
+
+async function renderTab16vos() {
+  if (!Object.keys(pros16).length) {
+    pros16 = await leerProsSheet(SHEET_16VOS);
+  }
+  renderFaseTabla('tbody-16vos', 'thead-16vos', partidos16, pros16);
+}
+
+async function renderTab8vos() {
+  if (!Object.keys(pros8).length) {
+    pros8 = await leerProsSheet(SHEET_8VOS);
+  }
+  renderFaseTabla('tbody-8vos', 'thead-8vos', partidos8, pros8);
+}
+
+async function renderTabFinal() {
+  if (!Object.keys(prosFinal).length) {
+    prosFinal = await leerProsSheet(SHEET_FINAL);
+  }
+  renderFaseTabla('tbody-final', 'thead-final', partidosFinal, prosFinal);
+}
+
+// Leer resultados nuevas fases del Apps Script (idx 100+)
+async function fetchResNuevas() {
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), {cache:'no-store'});
+    const data = await r.json();
+    let changed = false;
+    for (const [key, val] of Object.entries(data)) {
+      const idx = parseInt(key);
+      if (idx >= 100) {
+        resNuevas[String(idx)] = val;
+        changed = true;
+      }
+    }
+    return changed;
+  } catch(e) { return false; }
+}
+
+// Override showTab to load new tabs
+const _origShowTab = showTab;
+function showTab(name) {
+  _origShowTab(name);
+  if (name === '16vos') renderTab16vos();
+  else if (name === '8vos') renderTab8vos();
+  else if (name === 'final') renderTabFinal();
+}
+
+// Refresh nuevas fases cada 30 seg
+setInterval(async () => {
+  const changed = await fetchResNuevas();
+  if (changed) {
+    const active = document.querySelector('.tab.active')?.id?.replace('tab-btn-','');
+    if (active === '16vos') renderTab16vos();
+    else if (active === '8vos') renderTab8vos();
+    else if (active === 'final') renderTabFinal();
+  }
+}, 30000);
+
+// Initial load
+fetchResNuevas();
+
 </script>
 </body>
 </html>

@@ -135,7 +135,7 @@ function render() {
       badge='<div class="badge b-soon">'+h+' CDM</div>';
     }
     const body = st.res
-      ? '<div class="saved-sc">'+st.res[0]+' - '+st.res[1]+'</div>'+'<button class="edit-btn" onclick="edit('+p.id+')">Editar resultado</button>'
+      ? '<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>'+'<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>'
       : '<div class="score-row"><input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0"><span class="ssep">-</span><input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0"></div><button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>';
     return '<div class="card '+cardCls+'"><div class="card-head"><div class="card-num">P'+(p.id+1)+'</div>'+badge+'</div><div class="card-body"><div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'+body+'</div></div>';
   }).join('');
@@ -144,13 +144,13 @@ function render() {
 function save(id) {
   const lv = parseInt(document.getElementById('l'+id)?.value);
   const vv = parseInt(document.getElementById('v'+id)?.value);
-  if (isNaN(lv)||isNaN(vv)) { toast('Ingresa los dos goles',true); return; }
+  if (isNaN(lv)||isNaN(vv)) { toast('Ingresa los dos goles', true); return; }
   const btn = document.getElementById('btn'+id);
   if(btn){ btn.textContent='Enviando...'; btn.classList.add('sending'); }
   local[id] = [lv, vv];
   localStorage.setItem('adm_res', JSON.stringify(local));
   sendToSheet(id, lv, vv);
-  setTimeout(()=>{ toast('P'+(id+1)+': '+lv+'-'+vv+' guardado'); render(); }, 500);
+  setTimeout(()=>{ toast('P'+(id+1)+': '+lv+'-'+vv+' enviado al Sheet'); render(); }, 600);
 }
 
 function edit(id) {

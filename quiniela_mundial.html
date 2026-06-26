@@ -715,14 +715,7 @@ function renderPartidos() {
       return `<div class="pro-chip ${cls}">${icon} ${n.split(' ')[0]} ${pro[0]}-${pro[1]}</div>`;
     }).join('');
 
-    const inputHtml = st.state!=='fin' ? `
-      <div class="resultado-input">
-        <label>Resultado real:</label>
-        <input class="score-input" type="number" min="0" max="20" id="l${i}" placeholder="0">
-        <span class="score-sep">–</span>
-        <input class="score-input" type="number" min="0" max="20" id="v${i}" placeholder="0">
-        <button class="guardar-btn" onclick="guardar(${i})">Guardar</button>
-      </div>` : '';
+    const inputHtml = ''; // Solo admin puede editar resultados
 
     return `<div class="partido-card">
       <div class="partido-header">
@@ -746,14 +739,7 @@ function renderPartidos() {
 }
 
 // ===== ACCIONES =====
-function guardar(i) {
-  const l=parseInt(document.getElementById(`l${i}`).value);
-  const v=parseInt(document.getElementById(`v${i}`).value);
-  if (isNaN(l)||isNaN(v)) { alert('Ingresa ambos goles'); return; }
-  savedRes[`p${i}`]=[l,v];
-  localStorage.setItem('qm2026_res', JSON.stringify(savedRes));
-  renderAll();
-}
+// guardar removido - solo admin puede editar
 
 function recalcular() { renderAll(); }
 
@@ -806,12 +792,11 @@ const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva
 
 async function fetchSheetResults() {
   try {
-    // Lee el CSV del Sheet (funciona sin CORS porque es publico)
     const r = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
     if (!r.ok) return;
     const text = await r.text();
     const lines = text.trim().split('\n');
-    // Formato: idx, partido, local, visita
+    let updated = false;
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].replace(/"/g,'').split(',');
       if (cols.length >= 4 && cols[0] !== '') {
@@ -819,15 +804,18 @@ async function fetchSheetResults() {
         const lg = parseInt(cols[2]);
         const vg = parseInt(cols[3]);
         if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
-          // Solo actualizar partidos sin resultado fijo
-          if (!partidos[idx]?.res) {
-            savedRes[String(idx)] = [lg, vg];
-          }
+          // Sheet SIEMPRE tiene prioridad - sobreescribe todo
+          savedRes[String(idx)] = [lg, vg];
+          // Si el partido tenia resultado fijo, lo pisamos con el del sheet
+          if (partidos[idx]) partidos[idx].res = [lg, vg];
+          updated = true;
         }
       }
     }
-    renderAll();
-    console.log('Sheet leido OK');
+    if (updated) {
+      renderAll();
+      console.log('Sheet OK - ' + Object.keys(savedRes).length + ' resultados');
+    }
   } catch(e) {
     console.warn('Sheet no disponible:', e.message);
   }

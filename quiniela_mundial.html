@@ -844,32 +844,46 @@ const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva
 
 async function fetchSheetResults() {
   try {
-    const r = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+    // Leer resultados del Apps Script via GET (JSON directo)
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
     if (!r.ok) return;
-    const text = await r.text();
-    const lines = text.trim().split('\n');
+    const data = await r.json();
     let updated = false;
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].replace(/"/g,'').split(',');
-      if (cols.length >= 4 && cols[0] !== '') {
-        const idx = parseInt(cols[0]);
-        const lg = parseInt(cols[2]);
-        const vg = parseInt(cols[3]);
-        if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
-          // Sheet SIEMPRE tiene prioridad - sobreescribe todo
-          savedRes[String(idx)] = [lg, vg];
-          // Si el partido tenia resultado fijo, lo pisamos con el del sheet
-          if (partidos[idx]) partidos[idx].res = [lg, vg];
-          updated = true;
-        }
+    for (const [key, res] of Object.entries(data)) {
+      const idx = parseInt(key);
+      if (!isNaN(idx) && Array.isArray(res) && res.length === 2) {
+        savedRes[String(idx)] = res;
+        if (partidos[idx]) partidos[idx].res = res;
+        updated = true;
       }
     }
     if (updated) {
       renderAll();
-      console.log('Sheet OK - ' + Object.keys(savedRes).length + ' resultados');
+      console.log('Sheet OK:', Object.keys(data).length, 'resultados');
     }
   } catch(e) {
-    console.warn('Sheet no disponible:', e.message);
+    // Si falla JSON, intentar con CSV del Sheet
+    try {
+      const r2 = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+      if (!r2.ok) return;
+      const text = await r2.text();
+      const lines = text.trim().split('\n');
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].replace(/"/g,'').split(',');
+        if (cols.length >= 4 && cols[0] !== '') {
+          const idx = parseInt(cols[0]);
+          const lg = parseInt(cols[2]);
+          const vg = parseInt(cols[3]);
+          if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
+            savedRes[String(idx)] = [lg, vg];
+            if (partidos[idx]) partidos[idx].res = [lg, vg];
+          }
+        }
+      }
+      renderAll();
+    } catch(e2) {
+      console.warn('Sin conexion al Sheet');
+    }
   }
 }
 

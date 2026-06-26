@@ -813,10 +813,15 @@ function renderPartidos() {
 function recalcular() { renderAll(); }
 
 function showTab(tab) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.section, .tab-content').forEach(s=>s.style.display='none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  event.target.classList.add('active');
+  const el = document.getElementById('tab-'+tab);
+  if (el) { el.style.display='block'; el.classList.add('active'); }
+  if (event && event.target) event.target.classList.add('active');
+  // Cargar fases nuevas
+  if (tab==='16vos') renderTab16vos();
+  else if (tab==='8vos') renderTab8vos();
+  else if (tab==='final') renderTabFinal();
 }
 
 function renderAll() {
@@ -1100,14 +1105,7 @@ async function fetchResNuevas() {
   } catch(e) { return false; }
 }
 
-// Override showTab to load new tabs
-const _origShowTab = showTab;
-function showTab(name) {
-  _origShowTab(name);
-  if (name === '16vos') renderTab16vos();
-  else if (name === '8vos') renderTab8vos();
-  else if (name === 'final') renderTabFinal();
-}
+// showTab ya maneja las nuevas pestanas
 
 // Refresh nuevas fases cada 30 seg
 setInterval(async () => {

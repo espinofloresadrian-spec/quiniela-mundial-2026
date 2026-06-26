@@ -122,34 +122,53 @@ function canEdit(p) {
 
 function render() {
   const c = document.getElementById('list');
-  const list = partidos.filter(p => {
+  const list = partidos.filter(function(p) {
     const st = getState(p);
-    if (filter==='pending') return st.s==='soon'||st.s==='nodata';
+    if (filter==='pending') return st.s==='soon' || st.s==='nodata';
     if (filter==='live') return st.s==='live';
     if (filter==='done') return st.s==='done';
     return true;
   });
-  if (!list.length) { c.innerHTML='<div class="empty">Sin partidos en esta categoria</div>'; return; }
-  c.innerHTML = list.map(p => {
+  if (!list.length) {
+    c.innerHTML = '<div class="empty">Sin partidos en esta categoria</div>';
+    return;
+  }
+  const html = list.map(function(p) {
     const st = getState(p);
-    const canEdit = true;
-    let badge='', cardCls='';
-    if (st.s==='live') {
-      badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>"; cardCls='live';
-    } else if (st.s==='done') {
-      badge='<div class="badge b-done">FINALIZADO</div>'; cardCls='done';
-    } else {
-      const h=new Date(p.k).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'});
-      badge='<div class="badge b-soon">'+h+' CDM</div>';
-    }
     const editable = canEdit(p);
-    const body = st.res
-      ? '<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>'+(editable?'<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>':'')
-      : editable
-        ? '<div class="score-row"><input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0"><span class="ssep">-</span><input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0"></div><button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>'
-        : '<div style="text-align:center;padding:12px;color:#6b8f6b;font-size:13px">Aun no ha comenzado</div>';
-    return '<div class="card '+cardCls+'"><div class="card-head"><div class="card-num">P'+(p.id+1)+'</div>'+badge+'</div><div class="card-body"><div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'+body+'</div></div>';
-  }).join('');
+    let badge = '', cardCls = '';
+    if (st.s === 'live') {
+      badge = '<div class="badge b-live">EN VIVO ' + st.min + "'</div>";
+      cardCls = 'live';
+    } else if (st.s === 'done') {
+      badge = '<div class="badge b-done">FINALIZADO</div>';
+      cardCls = 'done';
+    } else {
+      const h = new Date(p.k).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'});
+      badge = '<div class="badge b-soon">' + h + ' CDM</div>';
+    }
+    let body = '';
+    if (st.res) {
+      body = '<div class="saved-sc">' + st.res[0] + ' — ' + st.res[1] + '</div>';
+      if (editable) body += '<button class="edit-btn" onclick="edit(' + p.id + ')">Cambiar resultado</button>';
+    } else if (editable) {
+      body = '<div class="score-row">'
+        + '<input class="sinput" type="number" min="0" max="20" id="l' + p.id + '" placeholder="0">'
+        + '<span class="ssep">-</span>'
+        + '<input class="sinput" type="number" min="0" max="20" id="v' + p.id + '" placeholder="0">'
+        + '</div>'
+        + '<button class="save-btn" id="btn' + p.id + '" onclick="save(' + p.id + ')">Guardar resultado</button>';
+    } else {
+      body = '<div style="text-align:center;padding:12px;color:#FFD600;font-size:13px">Inicia a las ' + new Date(p.k).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) + ' CDM</div>';
+    }
+    return '<div class="card ' + cardCls + '">'
+      + '<div class="card-head"><div class="card-num">P' + (p.id+1) + '</div>' + badge + '</div>'
+      + '<div class="card-body">'
+      + '<div class="teams"><div class="tname">' + p.l + '</div><div class="vs">VS</div><div class="tname">' + p.v + '</div></div>'
+      + body
+      + '</div></div>';
+  });
+  c.innerHTML = html.join('');
 }
 
 function save(id) {

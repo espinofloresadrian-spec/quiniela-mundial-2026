@@ -755,8 +755,10 @@ function renderPartidos() {
     } else if (st.state==='sin-res') {
       statusLabel='Por confirmar'; statusClass='status-soon'; lg='–'; vg='–';
     } else {
-      const hora = new Date(p.kickoff).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'});
-      statusLabel=hora+' hrs PDT'; statusClass='status-soon'; lg='–'; vg='–';
+     const kd2 = new Date(p.kickoff);
+const dia = kd2.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'});
+const hora = kd2.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
+statusLabel=dia+' '+hora+' PDT'; statusClass='status-soon'; lg='-'; vg='-';
     }
 
     const chips = JUGADORES.map(n=>{

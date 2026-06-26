@@ -144,8 +144,9 @@ function render() {
       badge = '<div class="badge b-done">FINALIZADO</div>';
       cardCls = 'done';
     } else {
-      const h = new Date(p.k).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'});
-      badge = '<div class="badge b-soon">' + h + ' CDM</div>';
+      const kd = new Date(p.k);
+      const h = kd.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'}) + ' ' + kd.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
+      badge = '<div class="badge b-soon">' + h + ' PDT</div>';
     }
     let body = '';
     if (st.res) {
@@ -159,7 +160,9 @@ function render() {
         + '</div>'
         + '<button class="save-btn" id="btn' + p.id + '" onclick="save(' + p.id + ')">Guardar resultado</button>';
     } else {
-      body = '<div style="text-align:center;padding:12px;color:#FFD600;font-size:13px">Inicia a las ' + new Date(p.k).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Mexico_City'}) + ' CDM</div>';
+      const kd3 = new Date(p.k);
+      const hInicia = kd3.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'}) + ' a las ' + kd3.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'}) + ' PDT';
+      body = '<div style="text-align:center;padding:12px;color:#FFD600;font-size:13px">Inicia el ' + hInicia + '</div>';
     }
     return '<div class="card ' + cardCls + '">'
       + '<div class="card-head"><div class="card-num">P' + (p.id+1) + '</div>' + badge + '</div>'

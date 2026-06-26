@@ -1025,32 +1025,21 @@ const resNuevas = {};
 let pros16 = {}, pros8 = {}, prosFinal = {};
 
 // Leer CSV de pronósticos nueva fase
-async function leerProsSheet(url) {
+async function leerProsSheet(action) {
   try {
-    const r = await fetch(url + '&t=' + Date.now());
-    const text = await r.text();
-    const lines = text.trim().split('\n').map(l => l.replace(/"/g,''));
-    // Fila 2 = encabezados de partidos (col B en adelante)
-    // Fila 3 = "Nombre" (skip)
-    // Filas 4,5 = primer jugador (nombre en col A fila par, vacío fila impar)
-    const headers = lines[1].split(',').slice(1); // equipos en columnas
+    const url = APPS_SCRIPT_URL + '?action=' + action + '&t=' + Date.now();
+    const r = await fetch(url);
+    if (!r.ok) { console.warn('Apps Script error:', r.status); return {}; }
+    const data = await r.json();
+    console.log('Pros cargados:', Object.keys(data).length, 'jugadores para', action);
+    // Convertir formato {nombre: [[l,v], null, ...]} a {nombre: {pronos: [...]}}
     const pros = {};
-    for (let i = 3; i < lines.length - 1; i += 2) {
-      const row1 = lines[i].split(',');
-      const row2 = lines[i+1] ? lines[i+1].split(',') : [];
-      const nombre = row1[0].trim();
-      if (!nombre) continue;
-      const pronos = [];
-      for (let j = 1; j < row1.length; j++) {
-        const lg = parseInt(row1[j]);
-        const vg = parseInt(row2[j] || '');
-        if (!isNaN(lg) && !isNaN(vg)) pronos.push([lg, vg]);
-        else pronos.push(null);
-      }
-      pros[nombre] = {headers, pronos};
+    for (const [nombre, pronos] of Object.entries(data)) {
+      pros[nombre] = { pronos };
     }
     return pros;
   } catch(e) {
+    console.error('leerProsSheet error:', e);
     return {};
   }
 }
@@ -1064,23 +1053,23 @@ function calcPtsNueva(pro, res) {
   return 0;
 }
 
-function renderFaseTabla(tbodyId, theadId, partidos, pros, secciones) {
+function renderFaseTabla(tbodyId, theadId, partidos, pros) {
   const thead = document.getElementById(theadId);
   const tbody = document.getElementById(tbodyId);
-  if (!thead || !tbody) return;
+  if (!thead || !tbody) { console.warn('No encontro', theadId, tbodyId); return; }
 
-  // Header row
-  let hdr = '<tr><th style="position:sticky;left:0;background:#1a2a1a;z-index:3">Jugador</th>';
-  partidos.forEach((p, i) => {
+  // Header
+  let hdr = '<tr style="background:#1a2a1a"><th style="position:sticky;left:0;background:#1a2a1a;z-index:3;padding:8px;text-align:left;color:#6b8f6b;font-size:11px">JUGADOR</th>';
+  partidos.forEach(p => {
     const res = resNuevas[String(p.idx)];
-    const label = p.l.split(' ')[0]+' vs '+p.v.split(' ')[0];
-    const resLabel = res ? res[0]+'-'+res[1] : '-';
-    hdr += '<th style="min-width:70px;font-size:10px;background:#1a2a1a">' + label + '<br><span style="color:var(--verde)">' + resLabel + '</span></th>';
+    const resLabel = res ? '<br><span style="color:#00C853">'+res[0]+'-'+res[1]+'</span>' : '';
+    hdr += '<th style="min-width:65px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">'
+      + p.l.substring(0,6)+' vs '+p.v.substring(0,6)+resLabel+'</th>';
   });
-  hdr += '<th style="background:#1a2a1a;color:var(--verde)">Pts</th></tr>';
+  hdr += '<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
   thead.innerHTML = hdr;
 
-  // Body rows
+  // Rows
   let rows = '';
   JUGADORES_ORD.forEach(nombre => {
     const datJug = pros[nombre];
@@ -1090,34 +1079,39 @@ function renderFaseTabla(tbodyId, theadId, partidos, pros, secciones) {
       const pro = datJug ? datJug.pronos[i] : null;
       const res = resNuevas[String(p.idx)];
       const puntos = calcPtsNueva(pro, res);
-      let cls = 'pro-pending', txt = pro ? pro[0]+'-'+pro[1] : '·';
-      if (puntos === 2) { cls = 'pro-exact'; pts += 2; }
-      else if (puntos === 1) { cls = 'pro-winner'; pts += 1; }
-      else if (puntos === 0) { cls = 'pro-miss'; }
-      celdas += '<td><span class="' + cls + '" style="padding:2px 4px;border-radius:3px;font-size:11px">' + txt + '</span></td>';
+      let bg = '', color = '#6b8f6b';
+      let txt = pro ? pro[0]+'-'+pro[1] : '·';
+      if (puntos === 2) { bg='rgba(0,200,83,0.25)'; color='#00C853'; pts+=2; }
+      else if (puntos === 1) { bg='rgba(255,214,0,0.2)'; color='#FFD600'; pts+=1; }
+      else if (puntos === 0 && res) { bg='rgba(255,23,68,0.1)'; color='#FF1744'; }
+      celdas += '<td style="text-align:center;padding:5px 3px"><span style="background:'+bg+';color:'+color+';padding:2px 5px;border-radius:3px;font-size:11px;font-weight:600">'+txt+'</span></td>';
     });
-    rows += '<tr><td style="position:sticky;left:0;background:var(--card);z-index:2;font-weight:600;font-size:12px;border-right:1px solid var(--border)">' + nombre + '</td>' + celdas + '<td style="color:var(--verde);font-weight:700">' + (pros[nombre] ? pts : '·') + '</td></tr>';
+    const ptsColor = pts > 0 ? '#00C853' : '#6b8f6b';
+    rows += '<tr style="border-bottom:1px solid #2a3a2a">'
+      + '<td style="position:sticky;left:0;background:var(--card,#1e271e);z-index:2;padding:7px 10px;font-weight:600;font-size:12px;border-right:1px solid #2a3a2a;white-space:nowrap">'+nombre+'</td>'
+      + celdas
+      + '<td style="text-align:center;font-weight:700;color:'+ptsColor+'">'+pts+'</td></tr>';
   });
-  tbody.innerHTML = rows;
+  tbody.innerHTML = rows || '<tr><td colspan="99" style="padding:20px;text-align:center;color:#6b8f6b">Cargando pronósticos...</td></tr>';
 }
 
 async function renderTab16vos() {
   if (!Object.keys(pros16).length) {
-    pros16 = await leerProsSheet(SHEET_16VOS);
+    pros16 = await leerProsSheet('pros16');
   }
   renderFaseTabla('tbody-16vos', 'thead-16vos', partidos16, pros16);
 }
 
 async function renderTab8vos() {
   if (!Object.keys(pros8).length) {
-    pros8 = await leerProsSheet(SHEET_8VOS);
+    pros8 = await leerProsSheet('pros8');
   }
   renderFaseTabla('tbody-8vos', 'thead-8vos', partidos8, pros8);
 }
 
 async function renderTabFinal() {
   if (!Object.keys(prosFinal).length) {
-    prosFinal = await leerProsSheet(SHEET_FINAL);
+    prosFinal = await leerProsSheet('prosfinal');
   }
   renderFaseTabla('tbody-final', 'thead-final', partidosFinal, prosFinal);
 }

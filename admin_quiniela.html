@@ -124,7 +124,7 @@ function render() {
   if (!list.length) { c.innerHTML='<div class="empty">Sin partidos en esta categoria</div>'; return; }
   c.innerHTML = list.map(p => {
     const st = getState(p);
-    const canEdit = !fixed[p.id];
+    const canEdit = true;
     let badge='', cardCls='';
     if (st.s==='live') {
       badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>"; cardCls='live';
@@ -135,7 +135,7 @@ function render() {
       badge='<div class="badge b-soon">'+h+' CDM</div>';
     }
     const body = st.res
-      ? '<div class="saved-sc">'+st.res[0]+' - '+st.res[1]+'</div>'+(canEdit?'<button class="edit-btn" onclick="edit('+p.id+')">Editar resultado</button>':'')
+      ? '<div class="saved-sc">'+st.res[0]+' - '+st.res[1]+'</div>'+'<button class="edit-btn" onclick="edit('+p.id+')">Editar resultado</button>'
       : '<div class="score-row"><input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0"><span class="ssep">-</span><input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0"></div><button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>';
     return '<div class="card '+cardCls+'"><div class="card-head"><div class="card-num">P'+(p.id+1)+'</div>'+badge+'</div><div class="card-body"><div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'+body+'</div></div>';
   }).join('');

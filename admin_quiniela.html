@@ -60,6 +60,10 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
   <button class="ftab" onclick="setFilter('pending',this)">Pendientes</button>
   <button class="ftab" onclick="setFilter('live',this)">En vivo</button>
   <button class="ftab" onclick="setFilter('done',this)">Finalizados</button>
+  <button class="ftab" onclick="setFilter('fase3',this)">Fase 3</button>
+  <button class="ftab" onclick="setFilter('16vos',this)">16vos</button>
+  <button class="ftab" onclick="setFilter('8vos',this)">8vos</button>
+  <button class="ftab" onclick="setFilter('finalfase',this)">Final</button>
 </div>
 <div class="list" id="list"></div>
 <div class="toast" id="toast"></div>
@@ -98,11 +102,45 @@ const partidos = [
   {id:21, l:'Congo',      v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
   {id:22, l:'Argelia',    v:'Austria',        k:'2026-06-28T03:00:00Z'},
   {id:23, l:'Jordania',   v:'Argentina',      k:'2026-06-28T03:00:00Z'},
+  // ===== 16VOS =====
+  {id:100,l:'Sudafrica',  v:'Canada',          k:'2026-06-28T19:00:00Z'},
+  {id:101,l:'Brasil',     v:'Japon',            k:'2026-06-29T17:00:00Z'},
+  {id:102,l:'Alemania',   v:'3ro A/B/C/D/F',   k:'2026-06-29T20:30:00Z'},
+  {id:103,l:'Holanda',    v:'Marruecos',        k:'2026-06-30T01:00:00Z'},
+  {id:104,l:'C. Marfil',  v:'Noruega',          k:'2026-06-30T17:00:00Z'},
+  {id:105,l:'Francia',    v:'3ro C/D/F/G/H',   k:'2026-06-30T21:00:00Z'},
+  {id:106,l:'Mexico',     v:'3ro C/E/F/H/I',   k:'2026-07-01T01:00:00Z'},
+  {id:107,l:'Winner L',   v:'3ro E/H/I/J/K',   k:'2026-07-01T16:00:00Z'},
+  {id:108,l:'Winner G',   v:'3ro A/E/H/I/J',   k:'2026-07-01T20:00:00Z'},
+  {id:109,l:'USA',        v:'Bosnia',           k:'2026-07-02T00:00:00Z'},
+  {id:110,l:'Winner H',   v:'Runner-up J',      k:'2026-07-02T19:00:00Z'},
+  {id:111,l:'Runner K',   v:'Runner L',         k:'2026-07-02T23:00:00Z'},
+  {id:112,l:'Suiza',      v:'3ro E/F/G/I/J',   k:'2026-07-03T03:00:00Z'},
+  {id:113,l:'Runner D',   v:'Runner G',         k:'2026-07-03T18:00:00Z'},
+  {id:114,l:'Argentina',  v:'Runner H',         k:'2026-07-03T22:00:00Z'},
+  {id:115,l:'Winner K',   v:'3ro D/E/I/J/L',   k:'2026-07-04T01:30:00Z'},
+  // ===== 8VOS =====
+  {id:200,l:'Win R32 73', v:'Win R32 75',       k:'2026-07-04T17:00:00Z'},
+  {id:201,l:'Win R32 74', v:'Win R32 76',       k:'2026-07-05T17:00:00Z'},
+  {id:202,l:'Win R32 77', v:'Win R32 79',       k:'2026-07-04T21:00:00Z'},
+  {id:203,l:'Win R32 78', v:'Win R32 80',       k:'2026-07-05T21:00:00Z'},
+  {id:204,l:'Win R32 81', v:'Win R32 83',       k:'2026-07-06T17:00:00Z'},
+  {id:205,l:'Win R32 82', v:'Win R32 84',       k:'2026-07-07T17:00:00Z'},
+  {id:206,l:'Win R32 85', v:'Win R32 87',       k:'2026-07-06T21:00:00Z'},
+  {id:207,l:'Win R32 86', v:'Win R32 88',       k:'2026-07-07T21:00:00Z'},
+  // ===== FASE FINAL =====
+  {id:300,l:'4to 1',      v:'4to 2',            k:'2026-07-09T17:00:00Z'},
+  {id:301,l:'4to 3',      v:'4to 4',            k:'2026-07-10T17:00:00Z'},
+  {id:302,l:'4to 5',      v:'4to 6',            k:'2026-07-09T21:00:00Z'},
+  {id:303,l:'4to 7',      v:'4to 8',            k:'2026-07-11T17:00:00Z'},
+  {id:400,l:'Semi 1',     v:'Semi 2',           k:'2026-07-14T22:00:00Z'},
+  {id:401,l:'Semi 3',     v:'Semi 4',           k:'2026-07-15T22:00:00Z'},
+  {id:500,l:'3er Lugar A',v:'3er Lugar B',      k:'2026-07-18T20:00:00Z'},
+  {id:501,l:'Finalista 1',v:'Finalista 2',      k:'2026-07-19T19:00:00Z'},
 ];
 
 const fixed = {0:[2,1],1:[3,1],2:[4,2],3:[0,3],4:[1,0],5:[0,3],6:[0,2],7:[2,1],8:[1,3],9:[1,1],10:[3,2],11:[0,0]};
 let local = JSON.parse(localStorage.getItem('adm_res') || '{}');
-delete local[14]; localStorage.setItem('adm_res', JSON.stringify(local));
 
 function getState(p) {
   const now = Date.now(), kick = new Date(p.k).getTime(), end = kick + DUR;
@@ -128,6 +166,10 @@ function render() {
     if (filter==='pending') return st.s==='soon' || st.s==='nodata';
     if (filter==='live') return st.s==='live';
     if (filter==='done') return st.s==='done';
+    if (filter==='fase3') return p.id < 100;
+    if (filter==='16vos') return p.id >= 100 && p.id < 200;
+    if (filter==='8vos') return p.id >= 200 && p.id < 300;
+    if (filter==='finalfase') return p.id >= 300;
     return true;
   });
   if (!list.length) {

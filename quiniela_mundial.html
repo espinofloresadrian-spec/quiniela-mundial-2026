@@ -786,6 +786,29 @@ function scheduleRefresh() {
   _timer = setTimeout(()=>{ renderAll(); scheduleRefresh(); }, getRefreshMs());
 }
 
+// ===== LEER RESULTADOS DEL GOOGLE SHEET =====
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
+
+async function fetchSheetResults() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    // Mezclar con resultados fijos (el sheet tiene prioridad sobre los hardcoded pendientes)
+    Object.keys(data).forEach(k => {
+      const idx = parseInt(k);
+      // Solo actualizar si el partido no tiene resultado fijo ya
+      if (!partidos[idx]?.res) {
+        savedRes[k] = data[k];
+      }
+    });
+    console.log('✅ Sheet leído:', Object.keys(data).length, 'resultados');
+    renderAll();
+  } catch(e) {
+    console.warn('Sheet no disponible:', e.message);
+  }
+}
+
 // ===== API EN VIVO =====
 // Mapeo: nombre en la quiniela -> nombre en inglés que usa la API
 const TEAM_MAP = {
@@ -989,6 +1012,10 @@ async function refreshWithAPI() {
 // ===== INIT =====
 renderAll(); // Render inmediato con datos locales
 scheduleRefresh();
+
+// Leer Sheet al inicio y cada 30 segundos
+fetchSheetResults();
+setInterval(fetchSheetResults, 30000);
 
 // Fetch de API en background
 refreshWithAPI().then(() => {

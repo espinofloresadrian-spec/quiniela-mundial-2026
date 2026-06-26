@@ -324,43 +324,37 @@ function editMatch(id) {
 // ===== GUARDAR EN GOOGLE SHEET =====
 // Usa Google Apps Script Web App como intermediario gratuito
 // El usuario debe crear el Apps Script y pegar la URL aquí
-const APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || '';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
 async function saveToSheet(id, local, visita) {
-  if (!APPS_SCRIPT_URL) return; // Sin URL configurada, solo local
   try {
     const partido = partidos[id];
     const payload = {
-      partido: `${partido.local} vs ${partido.visit}`,
-      local, visita,
-      idx: id
+      partido: partido.local + ' vs ' + partido.visit,
+      local, visita, idx: id
     };
-    await fetch(APPS_SCRIPT_URL, {
+    // Usar no-cors (Apps Script acepta POST sin CORS headers)
+    fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    setStatus('Sincronizado con Sheet ✓', false);
-  } catch(e) {
-    setStatus('Solo guardado local (sin Sheet)', true);
+    setStatus('Enviado a Sheet ✓', false);
+  }  catch(e) {
+    setStatus('Error al sincronizar', true);
   }
 }
 
 async function saveAllToSheet() {
-  if (!APPS_SCRIPT_URL) {
-    // Mostrar configuración
-    showConfig();
-    return;
-  }
   setStatus('Sincronizando...', false, true);
+  const allRes = {...resFixed, ...resUser};
   let ok = 0;
-  for (const [id, res] of Object.entries(resUser)) {
+  for (const [id, res] of Object.entries(allRes)) {
     await saveToSheet(parseInt(id), res[0], res[1]);
     ok++;
   }
-  showToast(`✅ ${ok} resultados sincronizados`);
-  setStatus(`Sincronizado: ${ok} resultados`, false);
+  showToast('✅ ' + ok + ' resultados enviados al Sheet');
+  setStatus('Sincronizado: ' + ok + ' resultados', false);
 }
 
 // ===== EXPORTAR COMO TEXTO (para copiar y pegar) =====

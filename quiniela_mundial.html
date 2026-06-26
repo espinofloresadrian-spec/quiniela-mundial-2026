@@ -957,16 +957,8 @@ fetchSheetResults();
 setInterval(fetchSheetResults, 30000);
 
 // Fetch de API en background
-refreshWithAPI().then(() => {
-  // Después del primer fetch, re-programar con API
-  clearTimeout(_timer);
-  async function apiLoop() {
-    await refreshWithAPI();
-    const interval = getRefreshMs();
-    setTimeout(apiLoop, interval);
-  }
-  setTimeout(apiLoop, getRefreshMs());
-});
+
+
 
 
 // ===== FASES NUEVAS: 16VOS, 8VOS, FASE FINAL =====

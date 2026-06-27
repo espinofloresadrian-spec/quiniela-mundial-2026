@@ -442,7 +442,10 @@
     /* Fase 3 tabla - scroll horizontal */
     #tab-fase3 .tabla-wrap { overflow-x: auto; }
     #tbody-fase3 td, #thead-fase3 th { font-size: 10px; padding: 6px 4px; min-width: 52px; }
-
+#tbody-16vos td:first-child, #thead-16vos th:first-child {
+  position: sticky; left: 0; background: var(--card); z-index: 2;
+  font-weight: 600; min-width: 100px; border-right: 1px solid var(--border);
+}
     /* Marcador grande en mobile */
     .goles { font-size: 2rem !important; }
     .equipo-nombre { font-size: 11px; }

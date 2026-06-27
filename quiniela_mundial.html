@@ -503,7 +503,8 @@
 <div class="tabs">
   <div class="tab active" onclick="showTab('general')">🏆 Tabla General</div>
   <div class="tab" onclick="showTab('fase3')">⚽ Fase 3</div>
-  <div class="tab" onclick="showTab('partidos')">📊 Partidos</div>
+  <div class="tab" onclick="showTab('partidos')">📊 Partidos F3</div>
+  <div class="tab" onclick="showTab('partidos16')">⚔️ Partidos 16vos</div>
   <div class="tab" onclick="showTab('16vos')">⚔️ 16vos</div>
   <div class="tab" onclick="showTab('8vos')">🏆 8vos</div>
   <div class="tab" onclick="showTab('final')">🌟 Final</div>
@@ -595,6 +596,11 @@
     </div>
   </div>
 
+
+  <!-- PARTIDOS 16VOS -->
+  <section id="tab-partidos16" class="section">
+    <div id="grid-partidos16" class="partidos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:16px"></div>
+  </section>
 </main>
 
 <script>
@@ -1140,6 +1146,75 @@ setInterval(async () => {
 
 // Initial load
 fetchResNuevas();
+
+
+// ===== PARTIDOS 16VOS CARDS =====
+async function renderPartidos16() {
+  const grid = document.getElementById('grid-partidos16');
+  if (!grid) return;
+  if (!Object.keys(pros16).length) {
+    pros16 = await leerProsSheet('pros16');
+  }
+  const now = Date.now();
+  const html = partidos16.map(function(p) {
+    const res = resNuevas[String(p.idx)];
+    const kick = new Date(p.k).getTime();
+    const end = kick + 115*60*1000;
+    let statusLabel, statusClass, lg, vg, pulse = '';
+    if (res) {
+      statusLabel = 'Finalizado'; statusClass = 'status-end';
+      lg = res[0]; vg = res[1];
+    } else if (now >= kick && now < end) {
+      const min = Math.floor((now-kick)/60000);
+      statusLabel = min+"'"; statusClass = 'status-live';
+      lg = '-'; vg = '-';
+      pulse = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rojo);margin-right:5px;animation:pulse 1s infinite"></span>';
+    } else if (now < kick) {
+      const kd = new Date(p.k);
+      const dia = kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'});
+      const hora = kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'});
+      statusLabel = dia+' '+hora+' PDT'; statusClass = 'status-soon';
+      lg = '-'; vg = '-';
+    } else {
+      statusLabel = 'Por confirmar'; statusClass = 'status-soon';
+      lg = '-'; vg = '-';
+    }
+    const pIdx = partidos16.indexOf(p);
+    const chips = JUGADORES_ORD.map(function(nombre) {
+      const datJug = pros16[nombre];
+      const pro = datJug ? datJug.pronos[pIdx] : null;
+      if (!pro) return '<span class="pro-chip pro-pending">· '+nombre.split(' ')[0]+' -</span>';
+      const pts = calcPtsNueva(pro, res);
+      const cls = pts===2?'pro-exact':pts===1?'pro-winner':pts===0?'pro-miss':'pro-pending';
+      const icon = pts===2?'✓✓':pts===1?'✓':pts===0?'✗':'·';
+      return '<span class="pro-chip '+cls+'">'+icon+' '+nombre.split(' ')[0]+' '+pro[0]+'-'+pro[1]+'</span>';
+    }).join('');
+    const scoreColor = statusClass==='status-end'?'var(--verde)':'var(--text)';
+    return '<div class="partido-card">'
+      +'<div class="partido-header">'
+      +'<span class="partido-nombre">P'+(p.idx-99)+' · '+p.l+' vs '+p.v+'</span>'
+      +'<span class="partido-status '+statusClass+'">'+pulse+statusLabel+'</span>'
+      +'</div>'
+      +'<div class="partido-marcador">'
+      +'<div class="equipo"><div class="equipo-nombre">'+p.l+'</div><div class="goles" style="color:'+scoreColor+'">'+lg+'</div></div>'
+      +'<div style="color:var(--muted);font-size:14px;padding:0 8px">vs</div>'
+      +'<div class="equipo"><div class="equipo-nombre">'+p.v+'</div><div class="goles" style="color:'+scoreColor+'">'+vg+'</div></div>'
+      +'</div>'
+      +'<div class="pro-section">'
+      +'<div class="pro-titulo">PRONOSTICOS (20)</div>'
+      +'<div class="pro-items">'+chips+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  grid.innerHTML = html;
+}
+
+// Hook showTab for partidos16
+const _st16 = showTab;
+showTab = function(tab) {
+  _st16(tab);
+  if (tab === 'partidos16') renderPartidos16();
+};
 
 </script>
 </body>

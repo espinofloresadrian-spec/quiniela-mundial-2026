@@ -442,14 +442,7 @@
     /* Fase 3 tabla - scroll horizontal */
     #tab-fase3 .tabla-wrap { overflow-x: auto; }
     #tbody-fase3 td, #thead-fase3 th { font-size: 10px; padding: 6px 4px; min-width: 52px; }
-#tbody-fase3 td:first-child, #thead-fase3 th:first-child {
-  position: sticky; left: 0; background: var(--card); z-index: 2;
-  font-weight: 600; min-width: 100px; border-right: 1px solid var(--border);
-}
-#tbody-16vos td:first-child, #thead-16vos th:first-child {
-  position: sticky; left: 0; background: var(--card); z-index: 2;
-  font-weight: 600; min-width: 100px; border-right: 1px solid var(--border);
-}
+
     /* Marcador grande en mobile */
     .goles { font-size: 2rem !important; }
     .equipo-nombre { font-size: 11px; }
@@ -743,11 +736,62 @@ function calcF3(nombre) {
   return total;
 }
 
+// Pronósticos leídos de los Sheets
+var pros16 = {}, pros8 = {}, prosFinal = {};
+
+function calc16vos(nombre) {
+  if (typeof pros16 === 'undefined' || !pros16) return 0;
+  const datJug = pros16[nombre];
+  if (!datJug) return 0;
+  let pts = 0;
+  partidos16.forEach(function(p, i) {
+    const res = resNuevas[String(p.idx)];
+    if (!res) return;
+    const pro = datJug.pronos[i];
+    const p2 = calcPtsNueva(pro, res);
+    if (p2) pts += p2;
+  });
+  return pts;
+}
+
+function calc8vos(nombre) {
+  if (typeof pros8 === 'undefined' || !pros8) return 0;
+  const datJug = pros8[nombre];
+  if (!datJug) return 0;
+  let pts = 0;
+  partidos8.forEach(function(p, i) {
+    const res = resNuevas[String(p.idx)];
+    if (!res) return;
+    const pro = datJug.pronos[i];
+    const p2 = calcPtsNueva(pro, res);
+    if (p2) pts += p2;
+  });
+  return pts;
+}
+
+function calcFinal(nombre) {
+  if (typeof prosFinal === 'undefined' || !prosFinal) return 0;
+  const datJug = prosFinal[nombre];
+  if (!datJug) return 0;
+  let pts = 0;
+  partidosFinal.forEach(function(p, i) {
+    const res = resNuevas[String(p.idx)];
+    if (!res) return;
+    const pro = datJug.pronos[i];
+    const p2 = calcPtsNueva(pro, res);
+    if (p2) pts += p2;
+  });
+  return pts;
+}
+
 function renderGeneral() {
   const rows = JUGADORES.map((n,i) => {
     const a = puntosAnteriores[n];
     const f3 = calcF3(n);
-    return { n, i, f1:a.f1, f2:a.f2, f3, total:a.f1+a.f2+f3 };
+    const v16 = calc16vos(n);
+    const v8 = calc8vos(n);
+    const vf = calcFinal(n);
+    return { n, i, f1:a.f1, f2:a.f2, f3, v16, v8, vf, total:a.f1+a.f2+f3+v16+v8+vf };
   }).sort((a,b)=>b.total-a.total);
   const max = rows[0]?.total || 1;
   document.getElementById('tbody-general').innerHTML = rows.map((r,pos)=>{
@@ -914,12 +958,7 @@ const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva
 
 async function fetchSheetResults() {
   try {
-    // Leer resultados del Apps Script via GET (JSON directo)
-    // Forzar no-cache siempre
-const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now() + '&r=' + Math.random(), {
-  cache: 'no-store',
-  headers: { 'Cache-Control': 'no-cache' }
-});
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
     if (!r.ok) return;
     const data = await r.json();
     let updated = false;
@@ -928,6 +967,8 @@ const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now() + '&r=' + Math.random
       if (!isNaN(idx) && Array.isArray(res) && res.length === 2) {
         savedRes[String(idx)] = res;
         if (partidos[idx]) partidos[idx].res = res;
+        // Also update resNuevas for new phases (idx >= 100)
+        if (idx >= 100) resNuevas[String(idx)] = res;
         updated = true;
       }
     }
@@ -1026,8 +1067,7 @@ const partidosFinal = [
 // Resultados de fases nuevas (desde Apps Script idx 100+)
 const resNuevas = {};
 
-// Pronósticos leídos de los Sheets
-let pros16 = {}, pros8 = {}, prosFinal = {};
+// pros16/pros8/prosFinal declared earlier
 
 // Leer CSV de pronósticos nueva fase
 async function leerProsSheet(action) {

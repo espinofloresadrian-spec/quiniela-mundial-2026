@@ -34,7 +34,7 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 .tname{flex:1;font-size:14px;font-weight:600;text-align:center}
 .vs{font-size:11px;color:#6b8f6b;font-weight:700;flex-shrink:0}
 .score-row{display:flex;align-items:center;justify-content:center;gap:10px}
-.sinput{width:58px;height:58px;border-radius:12px;text-align:center;font-size:26px;font-weight:700;background:#0d1a0d;border:2px solid #2a3a2a;color:#00C853;outline:none;-webkit-appearance:none;appearance:none;transition:border-color 0.2s}
+.sinput{width:58px;height:58px;border-radius:12px;text-align:center;font-size:26px;font-weight:700;background:#0d1a0d;border:2px solid #2a3a2a;color:#00C853;outline:none;-webkit-appearance:none;appearance:none}
 .sinput:focus{border-color:#00C853}
 .ssep{font-size:22px;font-weight:700;color:#6b8f6b}
 .save-btn{width:100%;margin-top:12px;padding:13px;border-radius:10px;background:#00C853;color:#000;border:none;font-size:15px;font-weight:700;cursor:pointer}
@@ -47,6 +47,7 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 .toast.err{background:#FF1744;color:#fff}
 .bottom{position:fixed;bottom:0;left:0;right:0;background:#0d1a0d;border-top:1px solid #2a3a2a;display:flex;padding:8px 16px 16px;gap:8px}
 .nbtn{flex:1;padding:10px;border-radius:10px;border:1px solid #2a3a2a;background:transparent;color:#6b8f6b;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+.fase-label{font-size:10px;color:#00C853;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -63,6 +64,8 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
   <button class="ftab" onclick="setFilter('fase3',this)">Fase 3</button>
   <button class="ftab" onclick="setFilter('16vos',this)">16vos</button>
   <button class="ftab" onclick="setFilter('8vos',this)">8vos</button>
+  <button class="ftab" onclick="setFilter('cuartos',this)">Cuartos</button>
+  <button class="ftab" onclick="setFilter('semis',this)">Semis</button>
   <button class="ftab" onclick="setFilter('finalfase',this)">Final</button>
 </div>
 <div class="list" id="list"></div>
@@ -78,242 +81,215 @@ const DUR = 115 * 60 * 1000;
 let filter = 'all';
 
 const partidos = [
-  {id:0,  l:'Suiza',      v:'Canada',         k:'2026-06-25T01:00:00Z'},
-  {id:1,  l:'Bosnia',     v:'Catar',          k:'2026-06-25T01:00:00Z'},
-  {id:2,  l:'Marruecos',  v:'Haiti',          k:'2026-06-25T01:00:00Z'},
-  {id:3,  l:'Escocia',    v:'Brasil',         k:'2026-06-26T00:00:00Z'},
-  {id:4,  l:'Sudafrica',  v:'Corea del Sur',  k:'2026-06-26T00:00:00Z'},
-  {id:5,  l:'Rep. Checa', v:'Mexico',         k:'2026-06-26T00:00:00Z'},
-  {id:6,  l:'Curazao',    v:'C. Marfil',      k:'2026-06-25T20:00:00Z'},
-  {id:7,  l:'Ecuador',    v:'Alemania',       k:'2026-06-25T20:00:00Z'},
-  {id:8,  l:'Tunez',      v:'Holanda',        k:'2026-06-26T01:00:00Z'},
-  {id:9,  l:'Japon',      v:'Suecia',         k:'2026-06-26T01:00:00Z'},
-  {id:10, l:'Turkia',     v:'USA',            k:'2026-06-26T04:00:00Z'},
-  {id:11, l:'Paraguay',   v:'Australia',      k:'2026-06-26T04:00:00Z'},
-  {id:12, l:'Noruega',    v:'Francia',        k:'2026-06-26T19:00:00Z'},
-  {id:13, l:'Senegal',    v:'Irak',           k:'2026-06-26T19:00:00Z'},
-  {id:14, l:'Cabo Verde', v:'Arabia Saudita', k:'2026-06-27T00:00:00Z'},
-  {id:15, l:'Uruguay',    v:'Espana',         k:'2026-06-27T00:00:00Z'},
-  {id:16, l:'N. Zelanda', v:'Belgica',        k:'2026-06-27T03:00:00Z'},
-  {id:17, l:'Egipto',     v:'Iran',           k:'2026-06-27T03:00:00Z'},
-  {id:18, l:'Panama',     v:'Inglaterra',     k:'2026-06-27T21:00:00Z'},
-  {id:19, l:'Croacia',    v:'Ghana',          k:'2026-06-27T21:00:00Z'},
-  {id:20, l:'Colombia',   v:'Portugal',       k:'2026-06-28T00:30:00Z'},
-  {id:21, l:'Congo',      v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
-  {id:22, l:'Argelia',    v:'Austria',        k:'2026-06-28T03:00:00Z'},
-  {id:23, l:'Jordania',   v:'Argentina',      k:'2026-06-28T03:00:00Z'},
-  // ===== 16VOS =====
-  {id:100,l:'Sudafrica',  v:'Canada',          k:'2026-06-28T19:00:00Z'},
-  {id:101,l:'Brasil',     v:'Japon',            k:'2026-06-29T17:00:00Z'},
-  {id:102,l:'Alemania',   v:'3ro A/B/C/D/F',   k:'2026-06-29T20:30:00Z'},
-  {id:103,l:'Holanda',    v:'Marruecos',        k:'2026-06-30T01:00:00Z'},
-  {id:104,l:'C. Marfil',  v:'Noruega',          k:'2026-06-30T17:00:00Z'},
-  {id:105,l:'Francia',    v:'3ro C/D/F/G/H',   k:'2026-06-30T21:00:00Z'},
-  {id:106,l:'Mexico',     v:'3ro C/E/F/H/I',   k:'2026-07-01T01:00:00Z'},
-  {id:107,l:'Winner L',   v:'3ro E/H/I/J/K',   k:'2026-07-01T16:00:00Z'},
-  {id:108,l:'Winner G',   v:'3ro A/E/H/I/J',   k:'2026-07-01T20:00:00Z'},
-  {id:109,l:'USA',        v:'Bosnia',           k:'2026-07-02T00:00:00Z'},
-  {id:110,l:'Winner H',   v:'Runner-up J',      k:'2026-07-02T19:00:00Z'},
-  {id:111,l:'Runner K',   v:'Runner L',         k:'2026-07-02T23:00:00Z'},
-  {id:112,l:'Suiza',      v:'3ro E/F/G/I/J',   k:'2026-07-03T03:00:00Z'},
-  {id:113,l:'Runner D',   v:'Runner G',         k:'2026-07-03T18:00:00Z'},
-  {id:114,l:'Argentina',  v:'Runner H',         k:'2026-07-03T22:00:00Z'},
-  {id:115,l:'Winner K',   v:'3ro D/E/I/J/L',   k:'2026-07-04T01:30:00Z'},
-  // ===== 8VOS =====
-  {id:200,l:'Win R32 73', v:'Win R32 75',       k:'2026-07-04T17:00:00Z'},
-  {id:201,l:'Win R32 74', v:'Win R32 76',       k:'2026-07-05T17:00:00Z'},
-  {id:202,l:'Win R32 77', v:'Win R32 79',       k:'2026-07-04T21:00:00Z'},
-  {id:203,l:'Win R32 78', v:'Win R32 80',       k:'2026-07-05T21:00:00Z'},
-  {id:204,l:'Win R32 81', v:'Win R32 83',       k:'2026-07-06T17:00:00Z'},
-  {id:205,l:'Win R32 82', v:'Win R32 84',       k:'2026-07-07T17:00:00Z'},
-  {id:206,l:'Win R32 85', v:'Win R32 87',       k:'2026-07-06T21:00:00Z'},
-  {id:207,l:'Win R32 86', v:'Win R32 88',       k:'2026-07-07T21:00:00Z'},
-  // ===== FASE FINAL =====
-  {id:300,l:'4to 1',      v:'4to 2',            k:'2026-07-09T17:00:00Z'},
-  {id:301,l:'4to 3',      v:'4to 4',            k:'2026-07-10T17:00:00Z'},
-  {id:302,l:'4to 5',      v:'4to 6',            k:'2026-07-09T21:00:00Z'},
-  {id:303,l:'4to 7',      v:'4to 8',            k:'2026-07-11T17:00:00Z'},
-  {id:400,l:'Semi 1',     v:'Semi 2',           k:'2026-07-14T22:00:00Z'},
-  {id:401,l:'Semi 3',     v:'Semi 4',           k:'2026-07-15T22:00:00Z'},
-  {id:500,l:'3er Lugar A',v:'3er Lugar B',      k:'2026-07-18T20:00:00Z'},
-  {id:501,l:'Finalista 1',v:'Finalista 2',      k:'2026-07-19T19:00:00Z'},
+  // FASE 3
+  {id:0,  fase:'fase3', l:'Suiza',       v:'Canada',         k:'2026-06-25T01:00:00Z'},
+  {id:1,  fase:'fase3', l:'Bosnia',      v:'Catar',          k:'2026-06-25T01:00:00Z'},
+  {id:2,  fase:'fase3', l:'Marruecos',   v:'Haiti',          k:'2026-06-25T01:00:00Z'},
+  {id:3,  fase:'fase3', l:'Escocia',     v:'Brasil',         k:'2026-06-26T00:00:00Z'},
+  {id:4,  fase:'fase3', l:'Sudafrica',   v:'Corea del Sur',  k:'2026-06-26T00:00:00Z'},
+  {id:5,  fase:'fase3', l:'Rep. Checa',  v:'Mexico',         k:'2026-06-26T00:00:00Z'},
+  {id:6,  fase:'fase3', l:'Curazao',     v:'C. Marfil',      k:'2026-06-25T20:00:00Z'},
+  {id:7,  fase:'fase3', l:'Ecuador',     v:'Alemania',       k:'2026-06-25T20:00:00Z'},
+  {id:8,  fase:'fase3', l:'Tunez',       v:'Holanda',        k:'2026-06-26T01:00:00Z'},
+  {id:9,  fase:'fase3', l:'Japon',       v:'Suecia',         k:'2026-06-26T01:00:00Z'},
+  {id:10, fase:'fase3', l:'Turkia',      v:'USA',            k:'2026-06-26T04:00:00Z'},
+  {id:11, fase:'fase3', l:'Paraguay',    v:'Australia',      k:'2026-06-26T04:00:00Z'},
+  {id:12, fase:'fase3', l:'Noruega',     v:'Francia',        k:'2026-06-26T19:00:00Z'},
+  {id:13, fase:'fase3', l:'Senegal',     v:'Irak',           k:'2026-06-26T19:00:00Z'},
+  {id:14, fase:'fase3', l:'Cabo Verde',  v:'Arabia Saudita', k:'2026-06-27T00:00:00Z'},
+  {id:15, fase:'fase3', l:'Uruguay',     v:'Espana',         k:'2026-06-27T00:00:00Z'},
+  {id:16, fase:'fase3', l:'N. Zelanda',  v:'Belgica',        k:'2026-06-27T03:00:00Z'},
+  {id:17, fase:'fase3', l:'Egipto',      v:'Iran',           k:'2026-06-27T03:00:00Z'},
+  {id:18, fase:'fase3', l:'Panama',      v:'Inglaterra',     k:'2026-06-27T21:00:00Z'},
+  {id:19, fase:'fase3', l:'Croacia',     v:'Ghana',          k:'2026-06-27T21:00:00Z'},
+  {id:20, fase:'fase3', l:'Colombia',    v:'Portugal',       k:'2026-06-28T00:30:00Z'},
+  {id:21, fase:'fase3', l:'Congo',       v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
+  {id:22, fase:'fase3', l:'Argelia',     v:'Austria',        k:'2026-06-28T03:00:00Z'},
+  {id:23, fase:'fase3', l:'Jordania',    v:'Argentina',      k:'2026-06-28T03:00:00Z'},
+  // 16VOS
+  {id:100, fase:'16vos', l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
+  {id:101, fase:'16vos', l:'Brasil',          v:'Japon',      k:'2026-06-29T18:00:00Z'},
+  {id:102, fase:'16vos', l:'Alemania',        v:'Paraguay',   k:'2026-06-29T21:30:00Z'},
+  {id:103, fase:'16vos', l:'Holanda',         v:'Marruecos',  k:'2026-06-30T02:00:00Z'},
+  {id:104, fase:'16vos', l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T18:00:00Z'},
+  {id:105, fase:'16vos', l:'Francia',         v:'Suecia',     k:'2026-06-30T22:00:00Z'},
+  {id:106, fase:'16vos', l:'Mexico',          v:'Ecuador',    k:'2026-07-01T02:00:00Z'},
+  {id:107, fase:'16vos', l:'Inglaterra',      v:'Congo',      k:'2026-07-01T17:00:00Z'},
+  {id:108, fase:'16vos', l:'Belgica',         v:'Senegal',    k:'2026-07-01T21:00:00Z'},
+  {id:109, fase:'16vos', l:'USA',             v:'Bosnia',     k:'2026-07-02T01:00:00Z'},
+  {id:110, fase:'16vos', l:'España',          v:'Austria',    k:'2026-07-02T20:00:00Z'},
+  {id:111, fase:'16vos', l:'Portugal',        v:'Croacia',    k:'2026-07-03T00:00:00Z'},
+  {id:112, fase:'16vos', l:'Suiza',           v:'Argelia',    k:'2026-07-03T04:00:00Z'},
+  {id:113, fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T19:00:00Z'},
+  {id:114, fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T23:00:00Z'},
+  {id:115, fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T02:30:00Z'},
+  // 8VOS
+  {id:200, fase:'8vos', l:'Gan(Alemania/Paraguay)', v:'Gan(Francia/Suecia)',       k:'2026-07-04T17:00:00Z'},
+  {id:201, fase:'8vos', l:'Gan(Sudafrica/Canada)',  v:'Gan(Holanda/Marruecos)',    k:'2026-07-05T17:00:00Z'},
+  {id:202, fase:'8vos', l:'Gan(Portugal/Croacia)',  v:'Gan(España/Austria)',       k:'2026-07-04T21:00:00Z'},
+  {id:203, fase:'8vos', l:'Gan(USA/Bosnia)',        v:'Gan(Belgica/Senegal)',      k:'2026-07-05T21:00:00Z'},
+  {id:204, fase:'8vos', l:'Gan(Brasil/Japon)',      v:'Gan(C.Marfil/Noruega)',     k:'2026-07-06T17:00:00Z'},
+  {id:205, fase:'8vos', l:'Gan(Mexico/Ecuador)',    v:'Gan(Inglaterra/Congo)',     k:'2026-07-07T17:00:00Z'},
+  {id:206, fase:'8vos', l:'Gan(Argentina/CaboVerde)',v:'Gan(Australia/Egipto)',    k:'2026-07-06T21:00:00Z'},
+  {id:207, fase:'8vos', l:'Gan(Suiza/Argelia)',     v:'Gan(Colombia/Ghana)',       k:'2026-07-07T21:00:00Z'},
+  // CUARTOS
+  {id:300, fase:'cuartos', l:'Gan 8vo 1', v:'Gan 8vo 2', k:'2026-07-09T16:00:00Z'},
+  {id:301, fase:'cuartos', l:'Gan 8vo 3', v:'Gan 8vo 4', k:'2026-07-10T15:00:00Z'},
+  {id:302, fase:'cuartos', l:'Gan 8vo 5', v:'Gan 8vo 6', k:'2026-07-11T17:00:00Z'},
+  {id:303, fase:'cuartos', l:'Gan 8vo 7', v:'Gan 8vo 8', k:'2026-07-11T21:00:00Z'},
+  // SEMIS
+  {id:400, fase:'semis', l:'Gan Cuarto 1', v:'Gan Cuarto 2', k:'2026-07-14T18:00:00Z'},
+  {id:401, fase:'semis', l:'Gan Cuarto 3', v:'Gan Cuarto 4', k:'2026-07-15T18:00:00Z'},
+  // FINAL
+  {id:500, fase:'finalfase', l:'3er Lugar A', v:'3er Lugar B', k:'2026-07-18T16:00:00Z'},
+  {id:501, fase:'finalfase', l:'Finalista 1', v:'Finalista 2', k:'2026-07-19T15:00:00Z'},
 ];
 
-const fixed = {0:[2,1],1:[3,1],2:[4,2],3:[0,3],4:[1,0],5:[0,3],6:[0,2],7:[2,1],8:[1,3],9:[1,1],10:[3,2],11:[0,0]};
 let local = JSON.parse(localStorage.getItem('adm_res') || '{}');
 
 function getState(p) {
   const now = Date.now(), kick = new Date(p.k).getTime(), end = kick + DUR;
-  const res = local[p.id] !== undefined ? local[p.id] : fixed[p.id];
+  const res = local[p.id] !== undefined ? local[p.id] : null;
   if (res) return {s:'done', res};
   if (now >= kick && now < end) return {s:'live', min: Math.floor((now-kick)/60000)};
-  if (now > end && !res) return {s:'nodata'}; // termino sin resultado
   if (now < kick) return {s:'soon', kick};
   return {s:'soon', kick};
 }
 
-function canEdit(p) {
-  // Admin solo puede editar si el partido ya empezo o ya termino
-  const now = Date.now();
-  const kick = new Date(p.k).getTime();
-  return now >= kick;
+function labelPartido(p) {
+  const fases = {fase3:'F3', '16vos':'16vos', '8vos':'8vos', cuartos:'Cuartos', semis:'Semis', finalfase:'Final'};
+  return (fases[p.fase]||'') + ' P' + p.id;
 }
 
 function render() {
   const c = document.getElementById('list');
   const list = partidos.filter(function(p) {
     const st = getState(p);
-    if (filter==='pending') return st.s==='soon' || st.s==='nodata';
+    if (filter==='pending') return st.s==='soon';
     if (filter==='live') return st.s==='live';
     if (filter==='done') return st.s==='done';
-    if (filter==='fase3') return p.id < 100;
-    if (filter==='16vos') return p.id >= 100 && p.id < 200;
-    if (filter==='8vos') return p.id >= 200 && p.id < 300;
-    if (filter==='finalfase') return p.id >= 300;
-    return true;
+    return filter==='all' || p.fase===filter;
   });
-  if (!list.length) {
-    c.innerHTML = '<div class="empty">Sin partidos en esta categoria</div>';
-    return;
-  }
-  const html = list.map(function(p) {
+  if (!list.length) { c.innerHTML='<div class="empty">Sin partidos en esta categoría</div>'; return; }
+  c.innerHTML = list.map(function(p) {
     const st = getState(p);
-    const editable = canEdit(p);
-    let badge = '', cardCls = '';
-    if (st.s === 'live') {
-      badge = '<div class="badge b-live">EN VIVO ' + st.min + "'</div>";
-      cardCls = 'live';
-    } else if (st.s === 'done') {
-      badge = '<div class="badge b-done">FINALIZADO</div>';
-      cardCls = 'done';
+    const editable = Date.now() >= new Date(p.k).getTime();
+    let badge='', cardCls='';
+    if (st.s==='live') {
+      badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>"; cardCls='live';
+    } else if (st.s==='done') {
+      badge='<div class="badge b-done">FINALIZADO</div>'; cardCls='done';
     } else {
-      const kd = new Date(p.k);
-      const h = kd.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'}) + ' ' + kd.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
-      badge = '<div class="badge b-soon">' + h + ' PDT</div>';
+      const kd=new Date(p.k);
+      const h=kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'})+' '+kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'});
+      badge='<div class="badge b-soon">'+h+' PDT</div>';
     }
-    let body = '';
+    let body='';
     if (st.res) {
-      body = '<div class="saved-sc">' + st.res[0] + ' — ' + st.res[1] + '</div>';
-      if (editable) body += '<button class="edit-btn" onclick="edit(' + p.id + ')">Cambiar resultado</button>';
+      body='<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>';
+      if (editable) body+='<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>';
     } else if (editable) {
-      body = '<div class="score-row">'
-        + '<input class="sinput" type="number" min="0" max="20" id="l' + p.id + '" placeholder="0">'
-        + '<span class="ssep">-</span>'
-        + '<input class="sinput" type="number" min="0" max="20" id="v' + p.id + '" placeholder="0">'
-        + '</div>'
-        + '<button class="save-btn" id="btn' + p.id + '" onclick="save(' + p.id + ')">Guardar resultado</button>';
+      body='<div class="score-row">'
+        +'<input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0">'
+        +'<span class="ssep">-</span>'
+        +'<input class="sinput" type="number" min="0" max="20" id="v'+p.id+'" placeholder="0">'
+        +'</div>'
+        +'<button class="save-btn" id="btn'+p.id+'" onclick="save('+p.id+')">Guardar resultado</button>';
     } else {
-      const kd3 = new Date(p.k);
-      const hInicia = kd3.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'}) + ' a las ' + kd3.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'}) + ' PDT';
-      body = '<div style="text-align:center;padding:12px;color:#FFD600;font-size:13px">Inicia el ' + hInicia + '</div>';
+      const kd=new Date(p.k);
+      body='<div style="text-align:center;padding:12px;color:#FFD600;font-size:13px">Inicia el '+kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'})+' a las '+kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'})+' PDT</div>';
     }
-    return '<div class="card ' + cardCls + '">'
-      + '<div class="card-head"><div class="card-num">P' + (p.id+1) + '</div>' + badge + '</div>'
-      + '<div class="card-body">'
-      + '<div class="teams"><div class="tname">' + p.l + '</div><div class="vs">VS</div><div class="tname">' + p.v + '</div></div>'
-      + body
-      + '</div></div>';
-  });
-  c.innerHTML = html.join('');
+    return '<div class="card '+cardCls+'">'
+      +'<div class="card-head"><div class="card-num">'+labelPartido(p)+'</div>'+badge+'</div>'
+      +'<div class="card-body">'
+      +'<div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'
+      +body+'</div></div>';
+  }).join('');
 }
 
 function save(id) {
-  const lv = parseInt(document.getElementById('l'+id)?.value);
-  const vv = parseInt(document.getElementById('v'+id)?.value);
-  if (isNaN(lv)||isNaN(vv)) { toast('Ingresa los dos goles', true); return; }
-  const btn = document.getElementById('btn'+id);
-  if(btn){ btn.textContent='Enviando...'; btn.classList.add('sending'); }
-  local[id] = [lv, vv];
-  localStorage.setItem('adm_res', JSON.stringify(local));
-  sendToSheet(id, lv, vv);
-  setTimeout(()=>{ toast('P'+(id+1)+': '+lv+'-'+vv+' enviado al Sheet'); render(); }, 600);
+  const lv=parseInt(document.getElementById('l'+id)?.value);
+  const vv=parseInt(document.getElementById('v'+id)?.value);
+  if(isNaN(lv)||isNaN(vv)){toast('Ingresa los dos goles',true);return;}
+  const btn=document.getElementById('btn'+id);
+  if(btn){btn.textContent='Enviando...';btn.classList.add('sending');}
+  local[id]=[lv,vv];
+  localStorage.setItem('adm_res',JSON.stringify(local));
+  sendToSheet(id,lv,vv);
+  setTimeout(function(){toast(labelPartido(partidos.find(function(p){return p.id===id;}))+': '+lv+'-'+vv+' guardado');render();},600);
 }
 
 function edit(id) {
   delete local[id];
-  localStorage.setItem('adm_res', JSON.stringify(local));
+  localStorage.setItem('adm_res',JSON.stringify(local));
   render();
 }
 
 function sendToSheet(id, l, v) {
-  const p = partidos.find(x => x.id === id);
-  const params = '?action=save&idx='+id+'&partido='+encodeURIComponent(p.l+' vs '+p.v)+'&local='+l+'&visita='+v;
-  const url = SCRIPT_URL + params;
-  // GET request - funciona sin CORS con Apps Script
-  fetch(url, {mode:'no-cors'})
-    .then(()=>{ setStatus('Guardado en Sheet', false); })
-    .catch(()=>{ setStatus('Sin conexion', true); });
-  // Doble seguro con imagen
-  new Image().src = url;
-  console.log('Enviando P'+(id+1)+': '+l+'-'+v);
+  const p = partidos.find(function(x){return x.id===id;});
+  if(!p) return;
+  const params='?action=save&idx='+id+'&partido='+encodeURIComponent(p.l+' vs '+p.v)+'&local='+l+'&visita='+v;
+  const url = SCRIPT_URL+params;
+  fetch(url,{mode:'no-cors'})
+    .then(function(){setStatus('Guardado en Sheet',false);})
+    .catch(function(){setStatus('Sin conexion',true);});
+  new Image().src=url;
 }
 
 async function syncAll() {
-  setStatus('Sincronizando...', false, true);
-  const all = Object.assign({}, fixed, local);
-  let i = 0;
-  for (const [id, res] of Object.entries(all)) {
-    sendToSheet(parseInt(id), res[0], res[1]);
-    await new Promise(r=>setTimeout(r,400));
+  setStatus('Sincronizando...',false,true);
+  let i=0;
+  for(const[id,res] of Object.entries(local)){
+    sendToSheet(parseInt(id),res[0],res[1]);
+    await new Promise(function(r){setTimeout(r,400);});
     i++;
   }
   toast('Sincronizados '+i+' resultados');
-  setStatus('Listo', false);
+  setStatus('Listo',false);
 }
 
-function setFilter(f, btn) {
-  filter = f;
-  document.querySelectorAll('.ftab,.nbtn').forEach(b=>b.classList.remove('on'));
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.ftab,.nbtn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
   render();
 }
 
-function setStatus(msg, err, loading) {
-  const d=document.getElementById('dot'), t=document.getElementById('stxt');
+function setStatus(msg,err,loading){
+  const d=document.getElementById('dot'),t=document.getElementById('stxt');
   d.className='dot'+(err?' err':loading?' spin':'');
   t.textContent=msg;
 }
 
-function toast(msg, err) {
+function toast(msg,err){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
-  setTimeout(()=>t.className='toast'+(err?' err':''),2500);
+  t.textContent=msg;t.className='toast'+(err?' err':'')+' show';
+  setTimeout(function(){t.className='toast'+(err?' err':'');},2500);
 }
 
-function exportar() {
-  const all=Object.assign({},fixed,local);
+function exportar(){
   let txt='QUINIELA MUNDIAL 2026 - Resultados\n\n';
-  partidos.forEach(p=>{ const r=all[p.id]; txt+='P'+(p.id+1)+' '+p.l+' vs '+p.v+': '+(r?r[0]+'-'+r[1]:'Pendiente')+'\n'; });
+  partidos.forEach(function(p){const r=local[p.id];txt+=labelPartido(p)+' '+p.l+' vs '+p.v+': '+(r?r[0]+'-'+r[1]:'Pendiente')+'\n';});
   if(navigator.share) navigator.share({text:txt});
-  else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast('Copiado'));
+  else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){toast('Copiado');});
 }
 
-// Leer resultados del Sheet al iniciar y cada 30 seg
 async function syncFromSheet() {
   try {
-    const r = await fetch(SCRIPT_URL + '?t=' + Date.now(), {cache:'no-store'});
-    const data = await r.json();
-    let changed = false;
-    for (const [idx, res] of Object.entries(data)) {
-      const id = parseInt(idx);
-      if (!isNaN(id) && Array.isArray(res)) {
-        // Solo actualizar si no hay version local mas reciente
-        local[id] = res;
-        changed = true;
-      }
+    const r=await fetch(SCRIPT_URL+'?t='+Date.now(),{cache:'no-store'});
+    const data=await r.json();
+    let changed=false;
+    for(const[idx,res] of Object.entries(data)){
+      const id=parseInt(idx);
+      if(!isNaN(id)&&Array.isArray(res)){local[id]=res;changed=true;}
     }
-    if (changed) {
-      localStorage.setItem('adm_res', JSON.stringify(local));
-      render();
-    }
-  } catch(e) {
-    console.warn('Sin conexion al Sheet');
-  }
+    if(changed){localStorage.setItem('adm_res',JSON.stringify(local));render();}
+  } catch(e){}
 }
 
 render();
 syncFromSheet();
-setInterval(syncFromSheet, 30000);
+setInterval(syncFromSheet,30000);
 </script>
 </body>
 </html>

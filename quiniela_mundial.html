@@ -23,17 +23,17 @@
   .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 3px; color: var(--verde); text-shadow: 0 0 20px rgba(0,200,83,0.4); }
   .logo span { color: var(--amarillo); }
   .live-badge { display: flex; align-items: center; gap: 8px; background: rgba(255,23,68,0.15); border: 1px solid var(--rojo); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--rojo); letter-spacing: 1px; }
-  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rojo); animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-  .tabs { display: flex; gap: 0; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; overflow-x: auto; }
-  .tab { padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; letter-spacing: 0.5px; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rojo); animation: blink 1.5s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; overflow-x: auto; }
+  .tab { padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--verde); border-bottom-color: var(--verde); }
   main { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
   .tabla-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .tabla-header { padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
   .tabla-titulo { font-size: 14px; font-weight: 700; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
-  .refresh-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .refresh-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .refresh-btn:hover { border-color: var(--verde); color: var(--verde); }
   table { width: 100%; border-collapse: collapse; }
   th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; background: var(--bg3); border-bottom: 1px solid var(--border); }
@@ -60,7 +60,6 @@
   .equipo { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
   .equipo-nombre { font-size: 12px; font-weight: 600; text-align: center; color: var(--text); }
   .goles { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--verde); line-height: 1; }
-  .vs { font-size: 12px; font-weight: 700; color: var(--muted); }
   .pronosticos-list { padding: 8px 14px 12px; border-top: 1px solid var(--border); }
   .pro-titulo { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
   .pro-items { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -72,43 +71,26 @@
   .leyenda { display: flex; gap: 16px; align-items: center; padding: 12px 1.5rem; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); flex-wrap: wrap; }
   .ley-item { display: flex; align-items: center; gap: 6px; }
   .ley-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .update-time { font-size: 11px; color: var(--muted); text-align: right; padding: 8px 1.5rem; }
   .section { display: none; }
   .section.active { display: block; }
+  .pendiente-msg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+  .pendiente-msg .icon { font-size: 40px; margin-bottom: 12px; }
   @media (max-width: 768px) {
-    header { padding: 10px 12px; }
-    .logo { font-size: 1.1rem; letter-spacing: 1px; }
-    .tabs { padding: 0 8px; }
-    .tab { padding: 12px 14px; font-size: 12px; }
-    main { padding: 10px 10px; }
-    table { font-size: 12px; }
-    th, td { padding: 8px 8px; }
-    .nombre-cell { gap: 6px; }
-    .avatar { width: 26px; height: 26px; font-size: 10px; }
-    .pts-total { font-size: 16px; }
-    .partidos-grid { grid-template-columns: 1fr !important; gap: 10px; }
-    .goles { font-size: 2rem !important; }
-    .equipo-nombre { font-size: 11px; }
-    .partido-marcador { padding: 12px 10px; }
-    .pro-chip { font-size: 10px; padding: 2px 6px; }
-    .pro-items { gap: 3px; }
+    header { padding: 10px 12px; } .logo { font-size: 1.1rem; }
+    .tabs { padding: 0 8px; } .tab { padding: 12px 14px; font-size: 12px; }
+    main { padding: 10px; } table { font-size: 12px; }
+    th, td { padding: 8px; } .avatar { width: 26px; height: 26px; font-size: 10px; }
+    .pts-total { font-size: 16px; } .partidos-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .goles { font-size: 2rem !important; } .col-hide-mobile { display: none; }
     .leyenda { font-size: 10px; gap: 10px; padding: 10px 12px; }
-    .col-hide-mobile { display: none; }
-  }
-  @media (max-width: 400px) {
-    .logo { font-size: 0.95rem; }
-    .tab { padding: 10px 10px; font-size: 11px; }
-    th, td { padding: 6px 5px; }
   }
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">QUINIELA <span>MUNDIAL</span> 2026</div>
   <div class="live-badge"><div class="live-dot"></div>EN VIVO</div>
 </header>
-
 <div class="tabs">
   <div class="tab active" onclick="showTab('general')">🏆 Tabla General</div>
   <div class="tab" onclick="showTab('partidos16')">⚔️ Partidos 16vos</div>
@@ -116,7 +98,6 @@
   <div class="tab" onclick="showTab('8vos')">🏆 8vos</div>
   <div class="tab" onclick="showTab('final')">🌟 Final</div>
 </div>
-
 <main>
   <!-- TABLA GENERAL -->
   <section id="tab-general" class="section active">
@@ -141,11 +122,9 @@
         <div class="ley-item"><div class="ley-dot" style="background:var(--winner)"></div> Solo ganador/empate = 1 pt</div>
         <div class="ley-item"><div class="ley-dot" style="background:#ff6b6b"></div> Fallo = 0 pts</div>
       </div>
-      <div class="update-time" id="update-time"></div>
     </div>
   </section>
-
-  <!-- TAB 16VOS -->
+  <!-- 16VOS -->
   <div id="tab-16vos" class="section">
     <div style="overflow-x:auto;padding:16px">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -154,35 +133,20 @@
       </table>
     </div>
   </div>
-
-  <!-- TAB 8VOS -->
+  <!-- 8VOS -->
   <div id="tab-8vos" class="section">
-    <div style="overflow-x:auto;padding:16px">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead id="thead-8vos"></thead>
-        <tbody id="tbody-8vos"></tbody>
-      </table>
-    </div>
+    <div id="contenido-8vos" style="padding:16px"></div>
   </div>
-
-  <!-- TAB FINAL -->
+  <!-- FINAL (cuartos, semis, final) -->
   <div id="tab-final" class="section">
-    <div style="overflow-x:auto;padding:16px">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead id="thead-final"></thead>
-        <tbody id="tbody-final"></tbody>
-      </table>
-    </div>
+    <div id="contenido-final" style="padding:16px"></div>
   </div>
-
   <!-- PARTIDOS 16VOS -->
   <section id="tab-partidos16" class="section">
     <div id="grid-partidos16" class="partidos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:16px"></div>
   </section>
 </main>
-
 <script>
-// ===== PUNTOS FIJOS F1+F2+F3 =====
 const puntosAnteriores = {
   'Olguin':        { f1:13, f2:21, f3:22 },
   'Pedro':         { f1:16, f2:20, f3:16 },
@@ -205,12 +169,11 @@ const puntosAnteriores = {
   'Ray':           { f1:16, f2:18, f3:20 },
   'Jesus':         { f1:13, f2:15, f3:18 },
 };
-
 const JUGADORES = Object.keys(puntosAnteriores);
 const JUGADORES_ORD = ['Maluma','Gamez','Vanessa','Ray','Olguin','Pedro','Alonso','Alex','Said','Rafa','Cesar','Don Jorge','Lic Dominguez','Jesus','Luis','Hazael','Espino','Papa Espino','Alejandra','Noe'];
-const AVATAR_COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4','#ff5722','#607d8b','#8bc34a','#ff9800','#673ab7','#03a9f4','#4caf50','#f44336','#795548','#009688'];
+const COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4','#ff5722','#607d8b','#8bc34a','#ff9800','#673ab7','#03a9f4','#4caf50','#f44336','#795548','#009688'];
 
-// ===== PARTIDOS 16VOS =====
+// ===== BRACKET COMPLETO =====
 const partidos16 = [
   {idx:100, l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
   {idx:101, l:'Brasil',          v:'Japon',      k:'2026-06-29T18:00:00Z'},
@@ -230,8 +193,8 @@ const partidos16 = [
   {idx:115, l:'Colombia',        v:'Ghana',      k:'2026-07-04T02:30:00Z'},
 ];
 
-// ===== 8VOS - BRACKET DINAMICO =====
-const bracket8 = [
+// 8vos: p16a/p16b = idx de los 16avos que alimentan este partido
+const partidos8 = [
   {idx:200, p16a:102, p16b:105, k:'2026-07-04T17:00:00Z'},
   {idx:201, p16a:100, p16b:103, k:'2026-07-05T17:00:00Z'},
   {idx:202, p16a:111, p16b:110, k:'2026-07-04T21:00:00Z'},
@@ -241,105 +204,153 @@ const bracket8 = [
   {idx:206, p16a:114, p16b:113, k:'2026-07-06T21:00:00Z'},
   {idx:207, p16a:112, p16b:115, k:'2026-07-07T21:00:00Z'},
 ];
-const partidos8 = bracket8;
 
-// ===== FASE FINAL =====
-const partidosFinal = [
-  {idx:300, l:'4to 1',      v:'4to 2',      k:'2026-07-09T17:00:00Z', sec:'Cuartos de Final'},
-  {idx:301, l:'4to 3',      v:'4to 4',      k:'2026-07-10T17:00:00Z', sec:'Cuartos de Final'},
-  {idx:302, l:'4to 5',      v:'4to 6',      k:'2026-07-09T21:00:00Z', sec:'Cuartos de Final'},
-  {idx:303, l:'4to 7',      v:'4to 8',      k:'2026-07-11T17:00:00Z', sec:'Cuartos de Final'},
-  {idx:400, l:'Semi 1',     v:'Semi 2',     k:'2026-07-14T22:00:00Z', sec:'Semifinales'},
-  {idx:401, l:'Semi 3',     v:'Semi 4',     k:'2026-07-15T22:00:00Z', sec:'Semifinales'},
-  {idx:500, l:'3er Lugar A',v:'3er Lugar B',k:'2026-07-18T20:00:00Z', sec:'3er Lugar'},
-  {idx:501, l:'Finalista 1',v:'Finalista 2',k:'2026-07-19T19:00:00Z', sec:'FINAL'},
+// Cuartos: p8a/p8b = idx de los 8vos que alimentan
+const partidosCuartos = [
+  {idx:300, p8a:200, p8b:201, k:'2026-07-09T16:00:00Z', sec:'Cuartos de Final'},
+  {idx:301, p8a:202, p8b:203, k:'2026-07-10T15:00:00Z', sec:'Cuartos de Final'},
+  {idx:302, p8a:204, p8b:205, k:'2026-07-11T17:00:00Z', sec:'Cuartos de Final'},
+  {idx:303, p8a:206, p8b:207, k:'2026-07-11T21:00:00Z', sec:'Cuartos de Final'},
 ];
 
-// ===== RESULTADOS =====
-const savedRes = {};
-const resNuevas = {};
+// Semis: pQa/pQb = idx de los cuartos
+const partidosSemis = [
+  {idx:400, pQa:300, pQb:301, k:'2026-07-14T18:00:00Z', sec:'Semifinales'},
+  {idx:401, pQa:302, pQb:303, k:'2026-07-15T18:00:00Z', sec:'Semifinales'},
+];
 
-// ===== PRONÓSTICOS =====
+// Final
+const partidosFinal = [
+  {idx:500, pSa:400, pSb:401, k:'2026-07-18T16:00:00Z', sec:'3er Lugar'},
+  {idx:501, pSa:400, pSb:401, k:'2026-07-19T15:00:00Z', sec:'FINAL'},
+];
+
+const resNuevas = {};
+const savedRes = {};
 var pros16 = {}, pros8 = {}, prosFinal = {};
 
-// ===== APPS SCRIPT =====
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 const SHEET_CSV_URL   = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados';
-const SHEET_CSV_16VOS = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados%2016vos';
+const SHEET_CSV_16VOS = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjFlu6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados%2016vos';
+const SHEET_CSV_FINAL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados%20Fase%20final';
 
-// ===== GANADOR DINAMICO 16VOS -> 8VOS =====
+// ===== FUNCIONES GANADOR DINAMICO =====
+function ganadorDe(allPartidos, idx) {
+  const res = resNuevas[String(idx)];
+  if (!res) return null;
+  const p = allPartidos.find(function(p) { return p.idx === idx; });
+  if (!p) return null;
+  if (res[0] > res[1]) return p._lNom || null;
+  if (res[1] > res[0]) return p._vNom || null;
+  return null;
+}
+
+// Resuelve nombre de equipo para 16avos (simple)
+function nombreEq16(idx16, lado) {
+  const p = partidos16.find(function(p) { return p.idx === idx16; });
+  if (!p) return '?';
+  const res = resNuevas[String(idx16)];
+  if (res) return res[0] > res[1] ? p.l : p.v;
+  return lado === 'l' ? p.l : p.v;
+}
+
+// Resuelve ganador de un partido de 16avos
 function ganador16(idx16) {
   const res = resNuevas[String(idx16)];
   if (!res) return null;
   const p = partidos16.find(function(p) { return p.idx === idx16; });
   if (!p) return null;
-  if (res[0] > res[1]) return p.l;
-  if (res[1] > res[0]) return p.v;
-  return null;
+  return res[0] > res[1] ? p.l : p.v;
 }
 
+// Resuelve ganador de un partido de 8vos
+function ganador8(idx8) {
+  const res = resNuevas[String(idx8)];
+  if (!res) return null;
+  const p = partidos8.find(function(p) { return p.idx === idx8; });
+  if (!p) return null;
+  const lNom = ganador16(p.p16a);
+  const vNom = ganador16(p.p16b);
+  if (!lNom || !vNom) return null;
+  return res[0] > res[1] ? lNom : vNom;
+}
+
+// Resuelve ganador de un cuarto
+function ganadorCuarto(idx) {
+  const res = resNuevas[String(idx)];
+  if (!res) return null;
+  const p = partidosCuartos.find(function(p) { return p.idx === idx; });
+  if (!p) return null;
+  const lNom = ganador8(p.p8a);
+  const vNom = ganador8(p.p8b);
+  if (!lNom || !vNom) return null;
+  return res[0] > res[1] ? lNom : vNom;
+}
+
+// Resuelve ganador de semi
+function ganadorSemi(idx) {
+  const res = resNuevas[String(idx)];
+  if (!res) return null;
+  const p = partidosSemis.find(function(p) { return p.idx === idx; });
+  if (!p) return null;
+  const lNom = ganadorCuarto(p.pQa);
+  const vNom = ganadorCuarto(p.pQb);
+  if (!lNom || !vNom) return null;
+  return res[0] > res[1] ? lNom : vNom;
+}
+
+// Nombre de equipo para 8vos
 function nombreEquipo8(p8, lado) {
   const idx16 = lado === 'l' ? p8.p16a : p8.p16b;
-  const gan = ganador16(idx16);
-  if (gan) return gan;
-  const p = partidos16.find(function(p) { return p.idx === idx16; });
-  if (!p) return '?';
-  return lado === 'l' ? p.l : p.v;
+  return ganador16(idx16); // null si no hay resultado
 }
 
-// ===== CALCULO PUNTOS =====
-function calcPts(lp, vp, lr, vr) {
-  if (lr===null||vr===null) return null;
-  if (lp===lr && vp===vr) return 2;
-  if (Math.sign(lr-vr)===Math.sign(lp-vp)) return 1;
-  return 0;
+// Nombre de equipo para cuartos
+function nombreEquipoCuarto(pC, lado) {
+  const idx8 = lado === 'l' ? pC.p8a : pC.p8b;
+  return ganador8(idx8);
 }
 
+// Nombre de equipo para semis
+function nombreEquipoSemi(pS, lado) {
+  const idxQ = lado === 'l' ? pS.pQa : pS.pQb;
+  return ganadorCuarto(idxQ);
+}
+
+// Nombre de equipo para final/3er lugar
+function nombreEquipoFinal(pF, lado) {
+  // Final: ganadores de semis; 3er lugar: perdedores de semis
+  const idxS = lado === 'l' ? pF.pSa : pF.pSb;
+  const semi = partidosSemis.find(function(s) { return s.idx === idxS; });
+  if (!semi) return null;
+  const res = resNuevas[String(idxS)];
+  if (!res) return null;
+  const lNom = ganadorCuarto(semi.pQa);
+  const vNom = ganadorCuarto(semi.pQb);
+  if (!lNom || !vNom) return null;
+  if (pF.sec === '3er Lugar') {
+    // perdedor de la semi
+    return res[0] > res[1] ? vNom : lNom;
+  }
+  // Final: ganador
+  return res[0] > res[1] ? lNom : vNom;
+}
+
+// ===== CALCULOS =====
 function calcPtsNueva(pro, res) {
   if (!pro || !res) return null;
   if (pro[0]===res[0] && pro[1]===res[1]) return 2;
-  const proGana = pro[0]>pro[1]?1:pro[0]<pro[1]?-1:0;
-  const resGana = res[0]>res[1]?1:res[0]<res[1]?-1:0;
-  if (proGana===resGana) return 1;
-  return 0;
+  const proG = pro[0]>pro[1]?1:pro[0]<pro[1]?-1:0;
+  const resG = res[0]>res[1]?1:res[0]<res[1]?-1:0;
+  return proG===resG ? 1 : 0;
 }
 
-function calc16vos(nombre) {
-  if (!pros16 || !Object.keys(pros16).length) return 0;
-  const datJug = pros16[nombre];
+function calcFase(nombre, partidos, pros) {
+  if (!pros || !Object.keys(pros).length) return 0;
+  const datJug = pros[nombre];
   if (!datJug) return 0;
   let pts = 0;
-  partidos16.forEach(function(p, i) {
-    const res = resNuevas[String(p.idx)];
-    if (!res) return;
-    const pro = datJug.pronos[i];
-    const p2 = calcPtsNueva(pro, res);
-    if (p2) pts += p2;
-  });
-  return pts;
-}
-
-function calc8vos(nombre) {
-  if (!pros8 || !Object.keys(pros8).length) return 0;
-  const datJug = pros8[nombre];
-  if (!datJug) return 0;
-  let pts = 0;
-  partidos8.forEach(function(p, i) {
-    const res = resNuevas[String(p.idx)];
-    if (!res) return;
-    const pro = datJug.pronos[i];
-    const p2 = calcPtsNueva(pro, res);
-    if (p2) pts += p2;
-  });
-  return pts;
-}
-
-function calcFinal(nombre) {
-  if (!prosFinal || !Object.keys(prosFinal).length) return 0;
-  const datJug = prosFinal[nombre];
-  if (!datJug) return 0;
-  let pts = 0;
-  partidosFinal.forEach(function(p, i) {
+  partidos.forEach(function(p, i) {
     const res = resNuevas[String(p.idx)];
     if (!res) return;
     const pro = datJug.pronos[i];
@@ -352,262 +363,354 @@ function calcFinal(nombre) {
 // ===== RENDER TABLA GENERAL =====
 function renderGeneral() {
   const rows = JUGADORES.map(function(n, i) {
-    const base = puntosAnteriores[n] || { f1:0, f2:0, f3:0 };
-    const f1 = base.f1, f2 = base.f2, f3 = base.f3;
-    const v16 = calc16vos(n);
-    const v8  = calc8vos(n);
-    const vf  = calcFinal(n);
-    const total = f1 + f2 + f3 + v16 + v8 + vf;
-    return { n, i, f1, f2, f3, v16, v8, vf, total };
-  }).sort(function(a, b) { return b.total - a.total; });
+    const base = puntosAnteriores[n] || {f1:0,f2:0,f3:0};
+    const v16 = calcFase(n, partidos16, pros16);
+    const v8  = calcFase(n, partidos8, pros8);
+    const vf  = calcFase(n, [...partidosCuartos,...partidosSemis,...partidosFinal], prosFinal);
+    const total = base.f1 + base.f2 + base.f3 + v16 + v8 + vf;
+    return {n, i, f1:base.f1, f2:base.f2, f3:base.f3, v16, v8, vf, total};
+  }).sort(function(a,b){return b.total-a.total;});
 
   document.getElementById('tbody-general').innerHTML = rows.map(function(r, pos) {
-    const medal    = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
+    const medal = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
     const posClass = pos===0?'gold':pos===1?'silver':pos===2?'bronze':'';
     const dyn = r.v16 + r.v8 + r.vf;
-    const c = AVATAR_COLORS[r.i % AVATAR_COLORS.length];
+    const c = COLORS[r.i % COLORS.length];
     return '<tr>'
-      + '<td class="pos ' + posClass + '" style="text-align:center;font-weight:700">' + (medal||(pos+1)) + '</td>'
-      + '<td><div class="nombre-cell">'
-      +   '<div class="avatar" style="background:' + c + '33;color:' + c + ';border:1px solid ' + c + '55">' + r.n[0] + '</div>'
-      +   '<span>' + r.n + '</span></div></td>'
-      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">' + r.f1 + '</td>'
-      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">' + r.f2 + '</td>'
-      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">' + r.f3 + '</td>'
-      + '<td class="pts-cell" style="color:var(--amarillo);font-weight:700">' + (dyn > 0 ? '+' + dyn : '–') + '</td>'
-      + '<td class="pts-cell"><div class="pts-total">' + r.total + '</div></td>'
-      + '</tr>';
+      +'<td class="pos '+posClass+'" style="text-align:center;font-weight:700">'+(medal||(pos+1))+'</td>'
+      +'<td><div class="nombre-cell"><div class="avatar" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+r.n[0]+'</div><span>'+r.n+'</span></div></td>'
+      +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f1+'</td>'
+      +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f2+'</td>'
+      +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f3+'</td>'
+      +'<td class="pts-cell" style="color:var(--amarillo);font-weight:700">'+(dyn>0?'+'+dyn:'–')+'</td>'
+      +'<td class="pts-cell"><div class="pts-total">'+r.total+'</div></td>'
+      +'</tr>';
   }).join('');
 }
 
-// ===== RENDER FASE TABLA (16VOS, 8VOS, FINAL) =====
-function renderFaseTabla(tbodyId, theadId, partidos, pros) {
-  const thead = document.getElementById(theadId);
-  const tbody = document.getElementById(tbodyId);
-  if (!thead || !tbody) return;
+// ===== RENDER TABLA DINAMICA (genérica) =====
+// partidos: array con idx
+// getNomL/getNomV: funciones que devuelven nombre o null
+// pros: objeto con pronósticos
+// containerId: donde renderizar
+function renderDinamica(partidos, getNomL, getNomV, pros, containerId, mensajePendiente) {
+  const contenido = document.getElementById(containerId);
+  if (!contenido) return;
 
-  // Header
+  const visibles = partidos.filter(function(p) {
+    return getNomL(p) !== null || getNomV(p) !== null;
+  });
+
+  if (visibles.length === 0) {
+    contenido.innerHTML = '<div class="pendiente-msg"><div class="icon">⏳</div>' + mensajePendiente + '</div>';
+    return;
+  }
+
   let hdr = '<tr style="background:#1a2a1a"><th style="position:sticky;left:0;background:#1a2a1a;z-index:3;padding:8px;text-align:left;color:#6b8f6b;font-size:11px">JUGADOR</th>';
-  partidos.forEach(function(p) {
+  visibles.forEach(function(p) {
+    const lNom = getNomL(p) || '?';
+    const vNom = getNomV(p) || '?';
     const res = resNuevas[String(p.idx)];
-    const resLabel = res ? '<br><span style="color:#00C853">' + res[0] + '-' + res[1] + '</span>' : '';
-    const lNom = (typeof p.p16a !== 'undefined') ? nombreEquipo8(p, 'l') : (p.l || '?');
-    const vNom = (typeof p.p16a !== 'undefined') ? nombreEquipo8(p, 'v') : (p.v || '?');
-    hdr += '<th style="min-width:120px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">' + lNom + '<br>vs<br>' + vNom + resLabel + '</th>';
+    const resLabel = res ? '<br><span style="color:#00C853">'+res[0]+'-'+res[1]+'</span>' : '';
+    const lColor = lNom==='?'?'#3a4a3a':'#6b8f6b';
+    const vColor = vNom==='?'?'#3a4a3a':'#6b8f6b';
+    const secLabel = p.sec ? '<div style="font-size:9px;color:#00C853;margin-bottom:2px">'+p.sec+'</div>' : '';
+    hdr += '<th style="min-width:120px;padding:6px 4px;font-size:10px;text-align:center">'
+      +secLabel
+      +'<span style="color:'+lColor+'">'+lNom+'</span>'
+      +'<br><span style="color:#6b8f6b">vs</span><br>'
+      +'<span style="color:'+vColor+'">'+vNom+'</span>'
+      +resLabel+'</th>';
   });
   hdr += '<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
-  thead.innerHTML = hdr;
 
-  // Rows
   let rows = '';
   JUGADORES_ORD.forEach(function(nombre) {
     const datJug = pros[nombre];
-    let pts = 0;
-    let celdas = '';
-    partidos.forEach(function(p, i) {
+    let pts = 0, celdas = '';
+    visibles.forEach(function(p) {
+      const iOrig = partidos.findIndex(function(b){return b.idx===p.idx;});
+      const pro = datJug ? datJug.pronos[iOrig] : null;
+      const res = resNuevas[String(p.idx)];
+      const puntos = calcPtsNueva(pro, res);
+      let bg='', color='#6b8f6b';
+      const txt = pro ? pro[0]+'-'+pro[1] : '·';
+      if (puntos===2) {bg='rgba(0,200,83,0.25)';color='#00C853';pts+=2;}
+      else if(puntos===1){bg='rgba(255,214,0,0.2)';color='#FFD600';pts+=1;}
+      else if(puntos===0&&res){bg='rgba(255,23,68,0.1)';color='#FF1744';}
+      celdas+='<td style="text-align:center;padding:5px 3px"><span style="background:'+bg+';color:'+color+';padding:2px 5px;border-radius:3px;font-size:11px;font-weight:600">'+txt+'</span></td>';
+    });
+    const ptsColor = pts>0?'#00C853':'#6b8f6b';
+    rows+='<tr style="border-bottom:1px solid #2a3a2a">'
+      +'<td style="position:sticky;left:0;background:var(--card,#1e271e);z-index:2;padding:7px 10px;font-weight:600;font-size:12px;border-right:1px solid #2a3a2a;white-space:nowrap">'+nombre+'</td>'
+      +celdas
+      +'<td style="text-align:center;font-weight:700;color:'+ptsColor+'">'+pts+'</td></tr>';
+  });
+
+  contenido.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead>'+hdr+'</thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ===== RENDER 16VOS (tabla fija) =====
+function renderFaseTabla16(tbodyId, theadId) {
+  const thead = document.getElementById(theadId);
+  const tbody = document.getElementById(tbodyId);
+  if (!thead || !tbody) return;
+  let hdr = '<tr style="background:#1a2a1a"><th style="position:sticky;left:0;background:#1a2a1a;z-index:3;padding:8px;text-align:left;color:#6b8f6b;font-size:11px">JUGADOR</th>';
+  partidos16.forEach(function(p) {
+    const res = resNuevas[String(p.idx)];
+    const resLabel = res ? '<br><span style="color:#00C853">'+res[0]+'-'+res[1]+'</span>' : '';
+    hdr += '<th style="min-width:100px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">'+p.l+'<br>vs<br>'+p.v+resLabel+'</th>';
+  });
+  hdr += '<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
+  thead.innerHTML = hdr;
+  let rows = '';
+  JUGADORES_ORD.forEach(function(nombre) {
+    const datJug = pros16[nombre];
+    let pts=0, celdas='';
+    partidos16.forEach(function(p, i) {
       const pro = datJug ? datJug.pronos[i] : null;
       const res = resNuevas[String(p.idx)];
       const puntos = calcPtsNueva(pro, res);
-      let bg = '', color = '#6b8f6b';
-      const txt = pro ? pro[0] + '-' + pro[1] : '·';
-      if (puntos === 2) { bg = 'rgba(0,200,83,0.25)'; color = '#00C853'; pts += 2; }
-      else if (puntos === 1) { bg = 'rgba(255,214,0,0.2)'; color = '#FFD600'; pts += 1; }
-      else if (puntos === 0 && res) { bg = 'rgba(255,23,68,0.1)'; color = '#FF1744'; }
-      celdas += '<td style="text-align:center;padding:5px 3px"><span style="background:' + bg + ';color:' + color + ';padding:2px 5px;border-radius:3px;font-size:11px;font-weight:600">' + txt + '</span></td>';
+      let bg='', color='#6b8f6b';
+      const txt = pro ? pro[0]+'-'+pro[1] : '·';
+      if(puntos===2){bg='rgba(0,200,83,0.25)';color='#00C853';pts+=2;}
+      else if(puntos===1){bg='rgba(255,214,0,0.2)';color='#FFD600';pts+=1;}
+      else if(puntos===0&&res){bg='rgba(255,23,68,0.1)';color='#FF1744';}
+      celdas+='<td style="text-align:center;padding:5px 3px"><span style="background:'+bg+';color:'+color+';padding:2px 5px;border-radius:3px;font-size:11px;font-weight:600">'+txt+'</span></td>';
     });
-    const ptsColor = pts > 0 ? '#00C853' : '#6b8f6b';
-    rows += '<tr style="border-bottom:1px solid #2a3a2a">'
-      + '<td style="position:sticky;left:0;background:var(--card,#1e271e);z-index:2;padding:7px 10px;font-weight:600;font-size:12px;border-right:1px solid #2a3a2a;white-space:nowrap">' + nombre + '</td>'
-      + celdas
-      + '<td style="text-align:center;font-weight:700;color:' + ptsColor + '">' + pts + '</td></tr>';
+    const ptsColor=pts>0?'#00C853':'#6b8f6b';
+    rows+='<tr style="border-bottom:1px solid #2a3a2a">'
+      +'<td style="position:sticky;left:0;background:var(--card,#1e271e);z-index:2;padding:7px 10px;font-weight:600;font-size:12px;border-right:1px solid #2a3a2a;white-space:nowrap">'+nombre+'</td>'
+      +celdas
+      +'<td style="text-align:center;font-weight:700;color:'+ptsColor+'">'+pts+'</td></tr>';
   });
-  tbody.innerHTML = rows || '<tr><td colspan="99" style="padding:20px;text-align:center;color:#6b8f6b">Cargando pronósticos...</td></tr>';
+  tbody.innerHTML = rows || '<tr><td colspan="99" style="padding:20px;text-align:center;color:#6b8f6b">Cargando...</td></tr>';
 }
 
 // ===== RENDER PARTIDOS 16VOS CARDS =====
 async function renderPartidos16() {
   const grid = document.getElementById('grid-partidos16');
   if (!grid) return;
-  if (!Object.keys(pros16).length) {
-    pros16 = await leerProsSheet('pros16');
-  }
+  if (!Object.keys(pros16).length) pros16 = await leerProsSheet('pros16');
   const now = Date.now();
-  const html = partidos16.map(function(p) {
+  grid.innerHTML = partidos16.map(function(p) {
     const res = resNuevas[String(p.idx)];
     const kick = new Date(p.k).getTime();
     const end = kick + 115*60*1000;
-    let statusLabel, statusClass, lg, vg, pulse = '';
+    let statusLabel, statusClass, lg, vg, pulse='';
     if (res) {
-      statusLabel = 'Finalizado'; statusClass = 'status-end'; lg = res[0]; vg = res[1];
-    } else if (now >= kick && now < end) {
-      const min = Math.floor((now-kick)/60000);
-      statusLabel = min + "'"; statusClass = 'status-live'; lg = '-'; vg = '-';
-      pulse = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rojo);margin-right:5px;animation:pulse 1s infinite"></span>';
-    } else if (now < kick) {
-      const kd = new Date(p.k);
-      const dia = kd.toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short', timeZone:'America/Tijuana'});
-      const hora = kd.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit', timeZone:'America/Tijuana'});
-      statusLabel = dia + ' ' + hora + ' PDT'; statusClass = 'status-soon'; lg = '-'; vg = '-';
-    } else {
-      statusLabel = 'Por confirmar'; statusClass = 'status-soon'; lg = '-'; vg = '-';
-    }
+      statusLabel='Finalizado'; statusClass='status-end'; lg=res[0]; vg=res[1];
+    } else if (now>=kick && now<end) {
+      statusLabel=Math.floor((now-kick)/60000)+"'"; statusClass='status-live'; lg='-'; vg='-';
+      pulse='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rojo);margin-right:5px;animation:blink 1s infinite"></span>';
+    } else if (now<kick) {
+      const kd=new Date(p.k);
+      statusLabel=kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'})+' '+kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'})+' PDT';
+      statusClass='status-soon'; lg='-'; vg='-';
+    } else { statusLabel='Por confirmar'; statusClass='status-soon'; lg='-'; vg='-'; }
     const pIdx = partidos16.indexOf(p);
     const chips = JUGADORES_ORD.map(function(nombre) {
-      const datJug = pros16[nombre];
-      const pro = datJug ? datJug.pronos[pIdx] : null;
-      if (!pro) return '<span class="pro-chip pro-pending">· ' + nombre.split(' ')[0] + ' -</span>';
-      const pts = calcPtsNueva(pro, res);
-      const cls = pts===2?'pro-exact':pts===1?'pro-winner':pts===0?'pro-miss':'pro-pending';
-      const icon = pts===2?'✓✓':pts===1?'✓':pts===0?'✗':'·';
-      return '<span class="pro-chip ' + cls + '">' + icon + ' ' + nombre.split(' ')[0] + ' ' + pro[0] + '-' + pro[1] + '</span>';
+      const datJug=pros16[nombre]; const pro=datJug?datJug.pronos[pIdx]:null;
+      if(!pro) return '<span class="pro-chip pro-pending">· '+nombre.split(' ')[0]+' -</span>';
+      const pts=calcPtsNueva(pro,res);
+      const cls=pts===2?'pro-exact':pts===1?'pro-winner':pts===0?'pro-miss':'pro-pending';
+      const icon=pts===2?'✓✓':pts===1?'✓':pts===0?'✗':'·';
+      return '<span class="pro-chip '+cls+'">'+icon+' '+nombre.split(' ')[0]+' '+pro[0]+'-'+pro[1]+'</span>';
     }).join('');
-    const scoreColor = statusClass === 'status-end' ? 'var(--verde)' : 'var(--text)';
+    const sc = statusClass==='status-end'?'var(--verde)':'var(--text)';
     return '<div class="partido-card">'
-      + '<div class="partido-header">'
-      + '<span class="partido-nombre">P' + (p.idx-99) + ' · ' + p.l + ' vs ' + p.v + '</span>'
-      + '<span class="partido-status ' + statusClass + '">' + pulse + statusLabel + '</span>'
-      + '</div>'
-      + '<div class="partido-marcador">'
-      + '<div class="equipo"><div class="equipo-nombre">' + p.l + '</div><div class="goles" style="color:' + scoreColor + '">' + lg + '</div></div>'
-      + '<div style="color:var(--muted);font-size:14px;padding:0 8px">vs</div>'
-      + '<div class="equipo"><div class="equipo-nombre">' + p.v + '</div><div class="goles" style="color:' + scoreColor + '">' + vg + '</div></div>'
-      + '</div>'
-      + '<div class="pronosticos-list"><div class="pro-titulo">PRONOSTICOS (20)</div>'
-      + '<div class="pro-items">' + chips + '</div></div>'
-      + '</div>';
+      +'<div class="partido-header"><span class="partido-nombre">P'+(p.idx-99)+' · '+p.l+' vs '+p.v+'</span>'
+      +'<span class="partido-status '+statusClass+'">'+pulse+statusLabel+'</span></div>'
+      +'<div class="partido-marcador">'
+      +'<div class="equipo"><div class="equipo-nombre">'+p.l+'</div><div class="goles" style="color:'+sc+'">'+lg+'</div></div>'
+      +'<div style="color:var(--muted);font-size:14px;padding:0 8px">vs</div>'
+      +'<div class="equipo"><div class="equipo-nombre">'+p.v+'</div><div class="goles" style="color:'+sc+'">'+vg+'</div></div>'
+      +'</div><div class="pronosticos-list"><div class="pro-titulo">PRONOSTICOS (20)</div>'
+      +'<div class="pro-items">'+chips+'</div></div></div>';
   }).join('');
-  grid.innerHTML = html;
 }
 
-// ===== LEER PRONOSTICOS DEL SHEET =====
+// ===== RENDER FASE FINAL (cuartos+semis+final combinados) =====
+function renderFaseFinal() {
+  const contenido = document.getElementById('contenido-final');
+  if (!contenido) return;
+
+  const todasSecciones = [...partidosCuartos, ...partidosSemis, ...partidosFinal];
+  const getNomLCuarto = function(p){return nombreEquipoCuarto(p,'l');};
+  const getNomVCuarto = function(p){return nombreEquipoCuarto(p,'v');};
+  const getNomLSemi   = function(p){return nombreEquipoSemi(p,'l');};
+  const getNomVSemi   = function(p){return nombreEquipoSemi(p,'v');};
+  const getNomLFinal  = function(p){return nombreEquipoFinal(p,'l');};
+  const getNomVFinal  = function(p){return nombreEquipoFinal(p,'v');};
+
+  const visiblesCuartos = partidosCuartos.filter(function(p){return getNomLCuarto(p)||getNomVCuarto(p);});
+  const visiblesSemis   = partidosSemis.filter(function(p){return getNomLSemi(p)||getNomVSemi(p);});
+  const visiblesFinal   = partidosFinal.filter(function(p){return getNomLFinal(p)||getNomVFinal(p);});
+
+  const totalVisibles = visiblesCuartos.length + visiblesSemis.length + visiblesFinal.length;
+
+  if (totalVisibles === 0) {
+    contenido.innerHTML = '<div class="pendiente-msg"><div class="icon">🏆</div>Los cuartos de final se mostrarán cuando avancen los 8vos</div>';
+    return;
+  }
+
+  // Combinar visibles con sus funciones de nombre
+  const visibles = [];
+  visiblesCuartos.forEach(function(p){visibles.push({p:p, getNomL:getNomLCuarto, getNomV:getNomVCuarto});});
+  visiblesSemis.forEach(function(p){visibles.push({p:p, getNomL:getNomLSemi, getNomV:getNomVSemi});});
+  visiblesFinal.forEach(function(p){visibles.push({p:p, getNomL:getNomLFinal, getNomV:getNomVFinal});});
+
+  let hdr = '<tr style="background:#1a2a1a"><th style="position:sticky;left:0;background:#1a2a1a;z-index:3;padding:8px;text-align:left;color:#6b8f6b;font-size:11px">JUGADOR</th>';
+  visibles.forEach(function(item) {
+    const p=item.p; const lNom=item.getNomL(p)||'?'; const vNom=item.getNomV(p)||'?';
+    const res=resNuevas[String(p.idx)];
+    const resLabel=res?'<br><span style="color:#00C853">'+res[0]+'-'+res[1]+'</span>':'';
+    const lColor=lNom==='?'?'#3a4a3a':'#6b8f6b';
+    const vColor=vNom==='?'?'#3a4a3a':'#6b8f6b';
+    const secLabel=p.sec?'<div style="font-size:9px;color:#00C853;margin-bottom:2px">'+p.sec+'</div>':'';
+    hdr+='<th style="min-width:120px;padding:6px 4px;font-size:10px;text-align:center">'+secLabel
+      +'<span style="color:'+lColor+'">'+lNom+'</span><br><span style="color:#6b8f6b">vs</span><br>'
+      +'<span style="color:'+vColor+'">'+vNom+'</span>'+resLabel+'</th>';
+  });
+  hdr+='<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
+
+  let rows='';
+  JUGADORES_ORD.forEach(function(nombre) {
+    const datJug=prosFinal[nombre];
+    let pts=0, celdas='';
+    visibles.forEach(function(item) {
+      const p=item.p;
+      const iOrig=todasSecciones.findIndex(function(b){return b.idx===p.idx;});
+      const pro=datJug?datJug.pronos[iOrig]:null;
+      const res=resNuevas[String(p.idx)];
+      const puntos=calcPtsNueva(pro,res);
+      let bg='', color='#6b8f6b';
+      const txt=pro?pro[0]+'-'+pro[1]:'·';
+      if(puntos===2){bg='rgba(0,200,83,0.25)';color='#00C853';pts+=2;}
+      else if(puntos===1){bg='rgba(255,214,0,0.2)';color='#FFD600';pts+=1;}
+      else if(puntos===0&&res){bg='rgba(255,23,68,0.1)';color='#FF1744';}
+      celdas+='<td style="text-align:center;padding:5px 3px"><span style="background:'+bg+';color:'+color+';padding:2px 5px;border-radius:3px;font-size:11px;font-weight:600">'+txt+'</span></td>';
+    });
+    const ptsColor=pts>0?'#00C853':'#6b8f6b';
+    rows+='<tr style="border-bottom:1px solid #2a3a2a">'
+      +'<td style="position:sticky;left:0;background:var(--card,#1e271e);z-index:2;padding:7px 10px;font-weight:600;font-size:12px;border-right:1px solid #2a3a2a;white-space:nowrap">'+nombre+'</td>'
+      +celdas+'<td style="text-align:center;font-weight:700;color:'+ptsColor+'">'+pts+'</td></tr>';
+  });
+
+  contenido.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead>'+hdr+'</thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ===== LEER PRONOSTICOS =====
 async function leerProsSheet(action) {
   try {
-    const url = APPS_SCRIPT_URL + '?action=' + action + '&t=' + Date.now();
-    const r = await fetch(url);
+    const r = await fetch(APPS_SCRIPT_URL+'?action='+action+'&t='+Date.now());
     if (!r.ok) return {};
     const data = await r.json();
-    console.log('Pros cargados:', Object.keys(data).length, 'jugadores para', action);
-    const pros = {};
-    for (const [nombre, pronos] of Object.entries(data)) {
-      pros[nombre] = { pronos };
-    }
+    const pros={};
+    for(const[nombre,pronos] of Object.entries(data)){pros[nombre]={pronos};}
     return pros;
-  } catch(e) {
-    console.error('leerProsSheet error:', e);
-    return {};
-  }
+  } catch(e){return {};}
 }
 
-// ===== LEER RESULTADOS DEL SHEET =====
-async function parseCSVResults(url, minIdx, maxIdx, startRow) {
-  const r = await fetch(url + '&t=' + Date.now());
-  if (!r.ok) return false;
-  const text = await r.text();
-  const lines = text.trim().split('\n');
-  let updated = false;
-  const from = (startRow !== undefined) ? startRow : 1;
-  for (let i = from; i < lines.length; i++) {
-    const cols = lines[i].replace(/"/g,'').split(',');
-    if (cols.length >= 4 && cols[0] !== '') {
-      const idx = parseInt(cols[0]);
-      const lg = parseInt(cols[2]);
-      const vg = parseInt(cols[3]);
-      if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
-        if (minIdx !== undefined && (idx < minIdx || idx > maxIdx)) continue;
-        savedRes[String(idx)] = [lg, vg];
-        if (idx >= 100) resNuevas[String(idx)] = [lg, vg];
-        updated = true;
+// ===== LEER RESULTADOS =====
+async function parseCSV(url, minIdx, maxIdx, startRow) {
+  try {
+    const r = await fetch(url+'&t='+Date.now());
+    if (!r.ok) return false;
+    const text = await r.text();
+    const lines = text.trim().split('\n');
+    let updated=false;
+    const from=(startRow!==undefined)?startRow:1;
+    for(let i=from;i<lines.length;i++){
+      const cols=lines[i].replace(/"/g,'').split(',');
+      if(cols.length>=4&&cols[0]!==''){
+        const idx=parseInt(cols[0]),lg=parseInt(cols[2]),vg=parseInt(cols[3]);
+        if(!isNaN(idx)&&!isNaN(lg)&&!isNaN(vg)){
+          if(minIdx!==undefined&&(idx<minIdx||idx>maxIdx))continue;
+          savedRes[String(idx)]=[lg,vg];
+          if(idx>=100) resNuevas[String(idx)]=[lg,vg];
+          updated=true;
+        }
       }
     }
-  }
-  return updated;
+    return updated;
+  } catch(e){return false;}
 }
 
 async function fetchSheetResults() {
   try {
-    let updated = false;
-    const u1 = await parseCSVResults(SHEET_CSV_URL);
-    if (u1) updated = true;
-    try {
-      const u2 = await parseCSVResults(SHEET_CSV_16VOS, 100, 199, 0);
-      if (u2) updated = true;
-    } catch(e2) {}
-    if (updated) renderGeneral();
+    let updated=false;
+    if(await parseCSV(SHEET_CSV_URL)) updated=true;
+    try{if(await parseCSV(SHEET_CSV_16VOS,100,199,0)) updated=true;}catch(e){}
+    try{if(await parseCSV(SHEET_CSV_FINAL,200,999,0)) updated=true;}catch(e){}
+    if(updated) refreshActive();
   } catch(e) {
     try {
-      const r2 = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
-      const data = await r2.json();
-      for (const [key, res] of Object.entries(data)) {
-        const idx = parseInt(key);
-        if (!isNaN(idx) && Array.isArray(res)) {
-          savedRes[String(idx)] = res;
-          if (idx >= 100) resNuevas[String(idx)] = res;
+      const r=await fetch(APPS_SCRIPT_URL+'?t='+Date.now());
+      const data=await r.json();
+      for(const[key,res] of Object.entries(data)){
+        const idx=parseInt(key);
+        if(!isNaN(idx)&&Array.isArray(res)){
+          savedRes[String(idx)]=res;
+          if(idx>=100) resNuevas[String(idx)]=res;
         }
       }
-      renderGeneral();
-    } catch(e2) {}
+      refreshActive();
+    } catch(e2){}
   }
 }
 
-async function fetchResNuevas() {
-  try {
-    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), {cache:'no-store'});
-    const data = await r.json();
-    let changed = false;
-    for (const [key, val] of Object.entries(data)) {
-      const idx = parseInt(key);
-      if (idx >= 100) { resNuevas[String(idx)] = val; changed = true; }
-    }
-    return changed;
-  } catch(e) { return false; }
+function refreshActive() {
+  renderGeneral();
+  const activeTab=document.querySelector('.tab.active');
+  if(!activeTab) return;
+  const txt=activeTab.textContent;
+  if(txt.includes('8vos')) render8vosTab();
+  if(txt.includes('Final')) renderFaseFinal();
+  if(txt.includes('16vos')&&!txt.includes('Partidos')) renderFaseTabla16('tbody-16vos','thead-16vos');
 }
 
 // ===== TABS =====
 function showTab(tab) {
-  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  const el = document.getElementById('tab-' + tab);
-  if (el) el.classList.add('active');
-  if (event && event.target) event.target.classList.add('active');
-  if (tab === '16vos') renderTab16vos();
-  else if (tab === '8vos') renderTab8vos();
-  else if (tab === 'final') renderTabFinal();
-  else if (tab === 'partidos16') renderPartidos16();
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  const el=document.getElementById('tab-'+tab);
+  if(el) el.classList.add('active');
+  if(event&&event.target) event.target.classList.add('active');
+  if(tab==='16vos') renderTab16vos();
+  else if(tab==='8vos') render8vosTab();
+  else if(tab==='final') renderTabFinal();
+  else if(tab==='partidos16') renderPartidos16();
 }
 
 async function renderTab16vos() {
-  if (!Object.keys(pros16).length) pros16 = await leerProsSheet('pros16');
-  renderFaseTabla('tbody-16vos', 'thead-16vos', partidos16, pros16);
+  if(!Object.keys(pros16).length) pros16=await leerProsSheet('pros16');
+  renderFaseTabla16('tbody-16vos','thead-16vos');
 }
 
-async function renderTab8vos() {
-  if (!Object.keys(pros8).length) pros8 = await leerProsSheet('pros8');
-  renderFaseTabla('tbody-8vos', 'thead-8vos', partidos8, pros8);
+function render8vosTab() {
+  renderDinamica(
+    partidos8,
+    function(p){return nombreEquipo8(p,'l');},
+    function(p){return nombreEquipo8(p,'v');},
+    pros8,
+    'contenido-8vos',
+    'Los octavos de final se mostrarán conforme avancen los 16vos'
+  );
 }
 
 async function renderTabFinal() {
-  if (!Object.keys(prosFinal).length) prosFinal = await leerProsSheet('prosfinal');
-  renderFaseTabla('tbody-final', 'thead-final', partidosFinal, prosFinal);
+  if(!Object.keys(prosFinal).length) prosFinal=await leerProsSheet('prosfinal');
+  renderFaseFinal();
 }
 
-function recalcular() { renderGeneral(); }
-
-// ===== LIVE BADGE =====
-function updateLiveBadge() {
-  const b = document.querySelector('.live-badge');
-  if (b) b.style.display = 'none';
-}
+function recalcular(){renderGeneral();}
 
 // ===== INIT =====
 renderGeneral();
-updateLiveBadge();
+document.querySelector('.live-badge').style.display='none';
 fetchSheetResults();
-fetchResNuevas();
 setInterval(fetchSheetResults, 30000);
-setInterval(async function() {
-  const changed = await fetchResNuevas();
-  if (changed) renderGeneral();
-}, 30000);
 </script>
 </body>
 </html>

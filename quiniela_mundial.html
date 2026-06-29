@@ -709,7 +709,10 @@ function recalcular(){renderGeneral();}
 // ===== INIT =====
 renderGeneral();
 document.querySelector('.live-badge').style.display='none';
-fetchSheetResults();
+leerProsSheet('pros16').then(function(data) {
+  pros16 = data;
+  fetchSheetResults();
+});
 setInterval(fetchSheetResults, 30000);
 </script>
 </body>

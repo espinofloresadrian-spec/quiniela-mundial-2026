@@ -367,7 +367,8 @@ function renderGeneral() {
     const v16 = calcFase(n, partidos16, pros16);
     const v8  = calcFase(n, partidos8, pros8);
     const vf  = calcFase(n, [...partidosCuartos,...partidosSemis,...partidosFinal], prosFinal);
-    const total = base.f1 + base.f2 + base.f3 + v16 + v8 + vf;
+    const ajuste = (window._ajustes && window._ajustes[n]) ? window._ajustes[n] : 0;
+const total = base.f1 + base.f2 + base.f3 + v16 + v8 + vf + ajuste;
     return {n, i, f1:base.f1, f2:base.f2, f3:base.f3, v16, v8, vf, total};
   }).sort(function(a,b){return b.total-a.total;});
 

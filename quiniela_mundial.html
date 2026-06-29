@@ -656,20 +656,6 @@ async function fetchSheetResults() {
     console.warn('Sin conexion al Sheet:', e);
   }
 }
-      refreshActive();
-    } catch(e2){}
-  }
-}
-
-function refreshActive() {
-  renderGeneral();
-  const activeTab=document.querySelector('.tab.active');
-  if(!activeTab) return;
-  const txt=activeTab.textContent;
-  if(txt.includes('8vos')) render8vosTab();
-  if(txt.includes('Final')) renderFaseFinal();
-  if(txt.includes('16vos')&&!txt.includes('Partidos')) renderFaseTabla16('tbody-16vos','thead-16vos');
-}
 
 // ===== TABS =====
 function showTab(tab) {

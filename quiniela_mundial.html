@@ -985,33 +985,49 @@ function scheduleRefresh() {
 // ===== LEER RESULTADOS DEL GOOGLE SHEET =====
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados';
+const SHEET_CSV_16VOS = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados%2016vos';
 const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
+
+async function parseCSVResults(url, minIdx, maxIdx) {
+  const r = await fetch(url + '&t=' + Date.now());
+  if (!r.ok) return false;
+  const text = await r.text();
+  const lines = text.trim().split('\n');
+  let updated = false;
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].replace(/"/g,'').split(',');
+    if (cols.length >= 4 && cols[0] !== '') {
+      const idx = parseInt(cols[0]);
+      const lg = parseInt(cols[2]);
+      const vg = parseInt(cols[3]);
+      if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
+        if (minIdx !== undefined && (idx < minIdx || idx > maxIdx)) continue;
+        savedRes[String(idx)] = [lg, vg];
+        if (partidos[idx]) partidos[idx].res = [lg, vg];
+        if (idx >= 100) resNuevas[String(idx)] = [lg, vg];
+        updated = true;
+      }
+    }
+  }
+  return updated;
+}
 
 async function fetchSheetResults() {
   // Leer resultados via CSV del Sheet (sin problemas de CORS)
   try {
-    const r = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
-    if (!r.ok) return;
-    const text = await r.text();
-    const lines = text.trim().split('\n');
     let updated = false;
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].replace(/"/g,'').split(',');
-      if (cols.length >= 4 && cols[0] !== '') {
-        const idx = parseInt(cols[0]);
-        const lg = parseInt(cols[2]);
-        const vg = parseInt(cols[3]);
-        if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
-          savedRes[String(idx)] = [lg, vg];
-          if (partidos[idx]) partidos[idx].res = [lg, vg];
-          if (idx >= 100) resNuevas[String(idx)] = [lg, vg];
-          updated = true;
-        }
-      }
-    }
+    // Fase 3 resultados
+    const u1 = await parseCSVResults(SHEET_CSV_URL);
+    if (u1) updated = true;
+    // 16vos resultados
+    try {
+      const u2 = await parseCSVResults(SHEET_CSV_16VOS);
+      if (u2) updated = true;
+    } catch(e2) { console.log('Sin resultados 16vos aun'); }
+
     if (updated) {
       renderAll();
-      console.log('Resultados OK:', Object.keys(savedRes).length);
+      console.log('Resultados OK - F3:', Object.keys(savedRes).filter(k=>parseInt(k)<100).length, '16vos:', Object.keys(resNuevas).length);
     }
   } catch(e) {
     // Fallback: intentar via Apps Script

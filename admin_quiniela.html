@@ -220,9 +220,18 @@ function save(id) {
 }
 
 function edit(id) {
+  // Guardar valor anterior para mostrarlo como placeholder
+  const prev = local[id];
   delete local[id];
-  localStorage.setItem('adm_res',JSON.stringify(local));
+  localStorage.setItem('adm_res', JSON.stringify(local));
   render();
+  // Pre-llenar inputs con valor anterior
+  if (prev) {
+    const lInput = document.getElementById('l'+id);
+    const vInput = document.getElementById('v'+id);
+    if (lInput) lInput.value = prev[0];
+    if (vInput) vInput.value = prev[1];
+  }
 }
 
 function sendToSheet(id, l, v) {

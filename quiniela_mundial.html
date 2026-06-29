@@ -1105,7 +1105,12 @@ function nombreEquipo8(p8, lado) {
   const gan = ganador16(idx16);
   if (gan) return gan;
   const p = partidos16.find(function(p) { return p.idx === idx16; });
-  return p ? p.l + '/' + p.v : '?';
+  if (!p) return '?';
+  const res = resNuevas[String(idx16)];
+  // Si el partido ya terminó pero no hay ganador registrado aún
+  if (res) return res[0] > res[1] ? p.l : p.v;
+  // Si aún no se juega, mostrar ambos equipos
+  return p.l + ' vs ' + p.v;
 }
 const partidosFinal = [
   {idx:300,l:'4to 1',v:'4to 2',k:'2026-07-09T17:00:00Z',sec:'Cuartos de Final'},

@@ -502,8 +502,7 @@
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('general')">🏆 Tabla General</div>
-  <div class="tab" onclick="showTab('fase3')">⚽ Fase 3</div>
-  <div class="tab" onclick="showTab('partidos')">📊 Partidos F3</div>
+  
   <div class="tab" onclick="showTab('partidos16')">⚔️ Partidos 16vos</div>
   <div class="tab" onclick="showTab('16vos')">⚔️ 16vos</div>
   <div class="tab" onclick="showTab('8vos')">🏆 8vos</div>
@@ -542,7 +541,7 @@
 </section>
 
 <!-- FASE 3 DETALLE -->
-<section id="tab-fase3" class="section">
+<section id="tab-fase3" class="section" style="display:none">
   <div class="tabla-wrap">
     <div class="tabla-header">
       <div class="tabla-titulo">Detalle Fase 3 — Pronósticos vs Resultados</div>
@@ -557,7 +556,7 @@
 </section>
 
 <!-- PARTIDOS -->
-<section id="tab-partidos" class="section">
+<section id="tab-partidos" class="section" style="display:none">
   <div style="margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
     <div style="font-size:13px; color:var(--muted); font-weight:600; letter-spacing:1px; text-transform:uppercase;">Fase 3 — 24 Partidos</div>
     <div style="font-size:12px; color:var(--muted);">Ingresa los resultados reales</div>
@@ -784,33 +783,65 @@ function calcFinal(nombre) {
   return pts;
 }
 
+
+// ===== TABLA GENERAL SIMPLIFICADA =====
+const puntosBase = {
+  'Maluma': 57,
+  'Gamez': 55,
+  'Vanessa': 55,
+  'Ray': 54,
+  'Olguin': 56,
+  'Pedro': 52,
+  'Alonso': 53,
+  'Alex': 53,
+  'Said': 53,
+  'Rafa': 52,
+  'Cesar': 49,
+  'Don Jorge': 49,
+  'Lic Dominguez': 46,
+  'Jesus': 46,
+  'Luis': 48,
+  'Hazael': 48,
+  'Espino': 49,
+  'Papa Espino': 41,
+  'Alejandra': 42,
+  'Noe': 39,
+};
+
 function renderGeneral() {
-  const rows = JUGADORES.map((n,i) => {
-    const a = puntosAnteriores[n];
-    const f3 = calcF3(n);
+  const rows = JUGADORES.map(function(n, i) {
+    const base = puntosBase[n] || 0;
     const v16 = calc16vos(n);
     const v8 = calc8vos(n);
     const vf = calcFinal(n);
-    return { n, i, f1:a.f1, f2:a.f2, f3, v16, v8, vf, total:a.f1+a.f2+f3+v16+v8+vf };
-  }).sort((a,b)=>b.total-a.total);
+    const total = base + v16 + v8 + vf;
+    return { n, i, base, v16, v8, vf, total };
+  }).sort((a,b) => b.total - a.total);
+
   const max = rows[0]?.total || 1;
-  document.getElementById('tbody-general').innerHTML = rows.map((r,pos)=>{
+  document.getElementById('tbody-general').innerHTML = rows.map((r, pos) => {
     const medal = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
     const posClass = pos===0?'gold':pos===1?'silver':pos===2?'bronze':'';
-    return `<tr>
-      <td class="pos ${posClass}">${medal||pos+1}</td>
-      <td><div class="nombre-cell">${avatar(r.n,r.i)}<div>
-        <div style="font-weight:600">${r.n}</div>
-        <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.round(r.total/max*100)}%"></div></div>
-      </div></div></td>
-      <td class="pts-cell col-hide-mobile" style="color:var(--muted)">${r.f1}</td>
-      <td class="pts-cell col-hide-mobile" style="color:var(--muted)">${r.f2}</td>
-      <td class="pts-cell" style="color:${r.f3>0?'var(--verde)':'var(--muted)'}">${r.f3}</td>
-      <td class="pts-cell"><div class="pts-total">${r.total}</div></td>
-    </tr>`;
+    return '<tr>'
+      + '<td class="rank-col"><span class="pos-badge '+posClass+'">'+(medal||pos+1)+'</span></td>'
+      + '<td class="nombre-cell"><div class="avatar" style="background:'+['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4','#ff5722','#607d8b','#8bc34a','#ff9800','#673ab7','#03a9f4','#4caf50','#f44336','#795548','#009688'][r.i%20]+'">'+r.n[0]+'</div><span>'+r.n+'</span></td>'
+      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.base+'</td>'
+      + '<td class="pts-cell" style="color:var(--amarillo);font-weight:700">'+(r.v16+r.v8+r.vf)+'</td>'
+      + '<td class="pts-cell pts-total">'+r.total+'</td>'
+      + '</tr>';
   }).join('');
-  document.getElementById('update-time').textContent = 'Actualizado: '+new Date().toLocaleTimeString('es-MX');
+
+  // Update header
+  const thead = document.querySelector('#tabla-general thead tr');
+  if (thead) {
+    thead.innerHTML = '<th class="rank-col">#</th>'
+      + '<th class="nombre-col">JUGADOR</th>'
+      + '<th class="pts col-hide-mobile">F1+F2+F3</th>'
+      + '<th class="pts">16vos+</th>'
+      + '<th class="pts">TOTAL</th>';
+  }
 }
+
 
 // ===== RENDER FASE 3 =====
 function renderFase3() {
@@ -957,42 +988,42 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6H
 const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
 async function fetchSheetResults() {
+  // Leer resultados via CSV del Sheet (sin problemas de CORS)
   try {
-    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
+    const r = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
     if (!r.ok) return;
-    const data = await r.json();
+    const text = await r.text();
+    const lines = text.trim().split('\n');
     let updated = false;
-    for (const [key, res] of Object.entries(data)) {
-      const idx = parseInt(key);
-      if (!isNaN(idx) && Array.isArray(res) && res.length === 2) {
-        savedRes[String(idx)] = res;
-        if (partidos[idx]) partidos[idx].res = res;
-        // Also update resNuevas for new phases (idx >= 100)
-        if (idx >= 100) resNuevas[String(idx)] = res;
-        updated = true;
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].replace(/"/g,'').split(',');
+      if (cols.length >= 4 && cols[0] !== '') {
+        const idx = parseInt(cols[0]);
+        const lg = parseInt(cols[2]);
+        const vg = parseInt(cols[3]);
+        if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
+          savedRes[String(idx)] = [lg, vg];
+          if (partidos[idx]) partidos[idx].res = [lg, vg];
+          if (idx >= 100) resNuevas[String(idx)] = [lg, vg];
+          updated = true;
+        }
       }
     }
     if (updated) {
       renderAll();
-      console.log('Sheet OK:', Object.keys(data).length, 'resultados');
+      console.log('Resultados OK:', Object.keys(savedRes).length);
     }
   } catch(e) {
-    // Si falla JSON, intentar con CSV del Sheet
+    // Fallback: intentar via Apps Script
     try {
-      const r2 = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
-      if (!r2.ok) return;
-      const text = await r2.text();
-      const lines = text.trim().split('\n');
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].replace(/"/g,'').split(',');
-        if (cols.length >= 4 && cols[0] !== '') {
-          const idx = parseInt(cols[0]);
-          const lg = parseInt(cols[2]);
-          const vg = parseInt(cols[3]);
-          if (!isNaN(idx) && !isNaN(lg) && !isNaN(vg)) {
-            savedRes[String(idx)] = [lg, vg];
-            if (partidos[idx]) partidos[idx].res = [lg, vg];
-          }
+      const r2 = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now());
+      const data = await r2.json();
+      for (const [key, res] of Object.entries(data)) {
+        const idx = parseInt(key);
+        if (!isNaN(idx) && Array.isArray(res)) {
+          savedRes[String(idx)] = res;
+          if (partidos[idx]) partidos[idx].res = res;
+          if (idx >= 100) resNuevas[String(idx)] = res;
         }
       }
       renderAll();

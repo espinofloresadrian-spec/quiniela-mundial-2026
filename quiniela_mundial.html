@@ -1089,7 +1089,24 @@ const bracket8 = [
   {idx:207, p16a:112, p16b:115, k:'2026-07-07T21:00:00Z'}, // Gan(Suiza/Argelia) vs Gan(Colombia/Ghana)
 ];
 const partidos8 = bracket8;
+// Ganador dinámico de 16avos → 8vos
+function ganador16(idx16) {
+  const res = resNuevas[String(idx16)];
+  if (!res) return null;
+  const p = partidos16.find(function(p) { return p.idx === idx16; });
+  if (!p) return null;
+  if (res[0] > res[1]) return p.l;
+  if (res[1] > res[0]) return p.v;
+  return null;
+}
 
+function nombreEquipo8(p8, lado) {
+  const idx16 = lado === 'l' ? p8.p16a : p8.p16b;
+  const gan = ganador16(idx16);
+  if (gan) return gan;
+  const p = partidos16.find(function(p) { return p.idx === idx16; });
+  return p ? p.l + '/' + p.v : '?';
+}
 const partidosFinal = [
   {idx:300,l:'4to 1',v:'4to 2',k:'2026-07-09T17:00:00Z',sec:'Cuartos de Final'},
   {idx:301,l:'4to 3',v:'4to 4',k:'2026-07-10T17:00:00Z',sec:'Cuartos de Final'},

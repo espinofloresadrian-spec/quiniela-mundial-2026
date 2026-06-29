@@ -1169,7 +1169,7 @@ function renderFaseTabla(tbodyId, theadId, partidos, pros) {
       const resLabel = res ? '<br><span style="color:#00C853">'+res[0]+'-'+res[1]+'</span>' : '';
       const lNom = (typeof p.p16a !== 'undefined') ? nombreEquipo8(p,'l') : (p.l || '?');
       const vNom = (typeof p.p16a !== 'undefined') ? nombreEquipo8(p,'v') : (p.v || '?');
-      hdr += '<th style="min-width:65px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">' + lNom.substring(0,8) + ' vs ' + vNom.substring(0,8) + resLabel + '</th>';
+      hdr += '<th style="min-width:120px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">' + lNom.substring(0,8) + ' vs ' + vNom.substring(0,8) + resLabel + '</th>';
     });
     hdr += '<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
     thead.innerHTML = hdr;

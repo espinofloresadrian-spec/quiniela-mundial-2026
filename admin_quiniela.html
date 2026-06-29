@@ -236,7 +236,7 @@ function edit(id) {
 }
 
 function sendToSheet(id, l, v) {
-  const p = partidos[id];
+  const p = partidos.find(x => x.id === id);
   const params = '?action=save&idx='+id+'&partido='+encodeURIComponent(p.l+' vs '+p.v)+'&local='+l+'&visita='+v;
   const url = SCRIPT_URL + params;
   // GET request - funciona sin CORS con Apps Script

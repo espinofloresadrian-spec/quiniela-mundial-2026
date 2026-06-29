@@ -1107,10 +1107,8 @@ function nombreEquipo8(p8, lado) {
   const p = partidos16.find(function(p) { return p.idx === idx16; });
   if (!p) return '?';
   const res = resNuevas[String(idx16)];
-  // Si el partido ya terminó pero no hay ganador registrado aún
   if (res) return res[0] > res[1] ? p.l : p.v;
-  // Si aún no se juega, mostrar ambos equipos
-  return p.l + ' vs ' + p.v;
+  return lado === 'l' ? p.l : p.v;
 }
 const partidosFinal = [
   {idx:300,l:'4to 1',v:'4to 2',k:'2026-07-09T17:00:00Z',sec:'Cuartos de Final'},
@@ -1171,7 +1169,7 @@ function renderFaseTabla(tbodyId, theadId, partidos, pros) {
       const vNom = (typeof p.p16a !== 'undefined') ? nombreEquipo8(p,'v') : (p.v || '?');
       hdr += '<th style="min-width:130px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">' + lNom + '<br>vs<br>' + vNom + resLabel + '</th>';
     });
-    hdr += '<th style="padding:8px;color:#FFD600;min-width:40px">PTS</th></tr>';
+   hdr += '<th style="min-width:130px;padding:6px 4px;font-size:10px;color:#6b8f6b;text-align:center">' + lNom + '<br>vs<br>' + vNom + resLabel + '</th>';
     thead.innerHTML = hdr;
   // Rows
   let rows = '';

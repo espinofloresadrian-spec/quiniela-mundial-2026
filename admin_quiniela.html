@@ -288,8 +288,32 @@ function exportar() {
   else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast('Copiado'));
 }
 
+// Leer resultados del Sheet al iniciar y cada 30 seg
+async function syncFromSheet() {
+  try {
+    const r = await fetch(SCRIPT_URL + '?t=' + Date.now(), {cache:'no-store'});
+    const data = await r.json();
+    let changed = false;
+    for (const [idx, res] of Object.entries(data)) {
+      const id = parseInt(idx);
+      if (!isNaN(id) && Array.isArray(res)) {
+        // Solo actualizar si no hay version local mas reciente
+        local[id] = res;
+        changed = true;
+      }
+    }
+    if (changed) {
+      localStorage.setItem('adm_res', JSON.stringify(local));
+      render();
+    }
+  } catch(e) {
+    console.warn('Sin conexion al Sheet');
+  }
+}
+
 render();
-setInterval(render, 30000);
+syncFromSheet();
+setInterval(syncFromSheet, 30000);
 </script>
 </body>
 </html>

@@ -313,8 +313,7 @@ function renderGeneral() {
     const dyn = r.v16 + r.v8 + r.vf;
     const c = COLORS[r.i % COLORS.length];
     // Mostrar ajuste si existe
-    const ajusteStr = r.ajuste !== 0 ? ' <span style="color:'+(r.ajuste>0?'#00C853':'#FF1744');+';font-size:11px">'+(r.ajuste>0?'+':'')+r.ajuste+'</span>' : '';
-    return '<tr>'
+       return '<tr>'
       +'<td class="pos '+posClass+'" style="text-align:center;font-weight:700">'+(medal||(pos+1))+'</td>'
       +'<td><div class="nombre-cell"><div class="avatar" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+r.n[0]+'</div><span>'+r.n+'</span></div></td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f1+'</td>'

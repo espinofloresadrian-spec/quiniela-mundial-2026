@@ -47,7 +47,24 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 .toast.err{background:#FF1744;color:#fff}
 .bottom{position:fixed;bottom:0;left:0;right:0;background:#0d1a0d;border-top:1px solid #2a3a2a;display:flex;padding:8px 16px 16px;gap:8px}
 .nbtn{flex:1;padding:10px;border-radius:10px;border:1px solid #2a3a2a;background:transparent;color:#6b8f6b;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
-.fase-label{font-size:10px;color:#00C853;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center}
+.modal-box{background:#1a231a;border:1px solid #00C853;border-radius:16px;padding:24px;width:90%;max-width:380px}
+.modal-title{font-size:16px;font-weight:700;color:#00C853;margin-bottom:16px}
+.modal-label{font-size:12px;color:#6b8f6b;display:block;margin-bottom:6px}
+.modal-select{width:100%;padding:10px;background:#0d1a0d;border:1px solid #2a3a2a;border-radius:8px;color:#e8f5e9;font-size:14px;margin-bottom:12px}
+.modal-input{width:100%;padding:12px;background:#0d1a0d;border:2px solid #2a3a2a;border-radius:8px;color:#00C853;font-size:24px;font-weight:700;text-align:center;outline:none;margin-bottom:8px}
+.modal-input:focus{border-color:#00C853}
+.modal-info{font-size:11px;color:#6b8f6b;margin-bottom:16px;min-height:16px}
+.modal-btns{display:flex;gap:8px}
+.modal-btn-cancel{flex:1;padding:12px;border-radius:8px;background:transparent;border:1px solid #2a3a2a;color:#6b8f6b;font-size:14px;cursor:pointer}
+.modal-btn-save{flex:1;padding:12px;border-radius:8px;background:#00C853;color:#000;border:none;font-size:14px;font-weight:700;cursor:pointer}
+.jugadores-lista{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;margin-bottom:16px}
+.jug-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0d1a0d;border-radius:8px;border:1px solid #2a3a2a}
+.jug-nombre{font-size:14px;font-weight:600}
+.jug-pts{font-size:18px;font-weight:700;color:#FFD600}
+.jug-pts.neg{color:#FF1744}
+.jug-pts.zero{color:#6b8f6b}
+.jug-edit{padding:4px 12px;border-radius:6px;background:transparent;border:1px solid #2a3a2a;color:#6b8f6b;font-size:12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -70,8 +87,47 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 </div>
 <div class="list" id="list"></div>
 <div class="toast" id="toast"></div>
+
+<!-- MODAL AJUSTE INDIVIDUAL -->
+<div class="modal-overlay" id="modal-ajuste">
+  <div class="modal-box">
+    <div class="modal-title">⚖️ Ajuste de Puntos</div>
+    <label class="modal-label">Participante</label>
+    <select class="modal-select" id="sel-jugador" onchange="onJugadorChange()">
+      <option value="">Seleccionar...</option>
+      <option>Olguin</option><option>Pedro</option><option>Luis</option>
+      <option>Rafa</option><option>Alonso</option><option>Vanessa</option>
+      <option>Espino</option><option>Papa Espino</option><option>Said</option>
+      <option>Cesar</option><option>Noe</option><option>Don Jorge</option>
+      <option>Maluma</option><option>Alex</option><option>Hazael</option>
+      <option>Gamez</option><option>Alejandra</option><option>Lic Dominguez</option>
+      <option>Ray</option><option>Jesus</option>
+    </select>
+    <label class="modal-label">Puntos (negativo = penalización, positivo = bonus)</label>
+    <input class="modal-input" type="number" id="inp-ajuste" placeholder="ej: -2">
+    <div class="modal-info" id="info-ajuste">Sin ajuste previo</div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="cerrarModal('modal-ajuste')">Cancelar</button>
+      <button class="modal-btn-save" onclick="guardarAjuste()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LISTA AJUSTES -->
+<div class="modal-overlay" id="modal-lista">
+  <div class="modal-box" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-title">⚖️ Penalizaciones / Bonos</div>
+    <div class="jugadores-lista" id="lista-ajustes"></div>
+    <div style="display:flex;gap:8px">
+      <button class="modal-btn-cancel" onclick="cerrarModal('modal-lista')">Cerrar</button>
+      <button class="modal-btn-save" onclick="abrirAjusteIndividual()">+ Nuevo ajuste</button>
+    </div>
+  </div>
+</div>
+
 <div class="bottom">
   <button class="nbtn" onclick="setFilter('all',this)">Partidos</button>
+  <button class="nbtn" onclick="abrirLista()">⚖️ Puntos</button>
   <button class="nbtn" onclick="exportar()">Compartir</button>
 </div>
 
@@ -79,9 +135,11 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 const DUR = 115 * 60 * 1000;
 let filter = 'all';
+let ajustesActuales = {};
+
+const JUGADORES_LISTA = ['Olguin','Pedro','Luis','Rafa','Alonso','Vanessa','Espino','Papa Espino','Said','Cesar','Noe','Don Jorge','Maluma','Alex','Hazael','Gamez','Alejandra','Lic Dominguez','Ray','Jesus'];
 
 const partidos = [
-  // FASE 3
   {id:0,  fase:'fase3', l:'Suiza',       v:'Canada',         k:'2026-06-25T01:00:00Z'},
   {id:1,  fase:'fase3', l:'Bosnia',      v:'Catar',          k:'2026-06-25T01:00:00Z'},
   {id:2,  fase:'fase3', l:'Marruecos',   v:'Haiti',          k:'2026-06-25T01:00:00Z'},
@@ -106,41 +164,36 @@ const partidos = [
   {id:21, fase:'fase3', l:'Congo',       v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
   {id:22, fase:'fase3', l:'Argelia',     v:'Austria',        k:'2026-06-28T03:00:00Z'},
   {id:23, fase:'fase3', l:'Jordania',    v:'Argentina',      k:'2026-06-28T03:00:00Z'},
-  // 16VOS
-  {id:100, l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
-  {id:101, l:'Brasil',          v:'Japon',      k:'2026-06-29T17:00:00Z'},
-  {id:102, l:'Alemania',        v:'Paraguay',   k:'2026-06-29T20:30:00Z'},
-  {id:103, l:'Holanda',         v:'Marruecos',  k:'2026-06-30T01:00:00Z'},
-  {id:104, l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T17:00:00Z'},
-  {id:105, l:'Francia',         v:'Suecia',     k:'2026-06-30T21:00:00Z'},
-  {id:106, l:'Mexico',          v:'Ecuador',    k:'2026-07-01T01:00:00Z'},
-  {id:107, l:'Inglaterra',      v:'Congo',      k:'2026-07-01T16:00:00Z'},
-  {id:108, l:'Belgica',         v:'Senegal',    k:'2026-07-01T20:00:00Z'},
-  {id:109, l:'USA',             v:'Bosnia',     k:'2026-07-02T00:00:00Z'},
-  {id:110, l:'España',          v:'Austria',    k:'2026-07-02T19:00:00Z'},
-  {id:111, l:'Portugal',        v:'Croacia',    k:'2026-07-02T23:00:00Z'},
-  {id:112, l:'Suiza',           v:'Argelia',    k:'2026-07-03T03:00:00Z'},
-  {id:113, l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
-  {id:114, l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
-  {id:115, l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
-  // 8VOS
-  {id:200, fase:'8vos', l:'Gan(Alemania/Paraguay)', v:'Gan(Francia/Suecia)',       k:'2026-07-04T17:00:00Z'},
-  {id:201, fase:'8vos', l:'Gan(Sudafrica/Canada)',  v:'Gan(Holanda/Marruecos)',    k:'2026-07-05T17:00:00Z'},
-  {id:202, fase:'8vos', l:'Gan(Portugal/Croacia)',  v:'Gan(España/Austria)',       k:'2026-07-04T21:00:00Z'},
-  {id:203, fase:'8vos', l:'Gan(USA/Bosnia)',        v:'Gan(Belgica/Senegal)',      k:'2026-07-05T21:00:00Z'},
-  {id:204, fase:'8vos', l:'Gan(Brasil/Japon)',      v:'Gan(C.Marfil/Noruega)',     k:'2026-07-06T17:00:00Z'},
-  {id:205, fase:'8vos', l:'Gan(Mexico/Ecuador)',    v:'Gan(Inglaterra/Congo)',     k:'2026-07-07T17:00:00Z'},
-  {id:206, fase:'8vos', l:'Gan(Argentina/CaboVerde)',v:'Gan(Australia/Egipto)',    k:'2026-07-06T21:00:00Z'},
-  {id:207, fase:'8vos', l:'Gan(Suiza/Argelia)',     v:'Gan(Colombia/Ghana)',       k:'2026-07-07T21:00:00Z'},
-  // CUARTOS
+  {id:100, fase:'16vos', l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
+  {id:101, fase:'16vos', l:'Brasil',          v:'Japon',      k:'2026-06-29T17:00:00Z'},
+  {id:102, fase:'16vos', l:'Alemania',        v:'Paraguay',   k:'2026-06-29T20:30:00Z'},
+  {id:103, fase:'16vos', l:'Holanda',         v:'Marruecos',  k:'2026-06-30T01:00:00Z'},
+  {id:104, fase:'16vos', l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T17:00:00Z'},
+  {id:105, fase:'16vos', l:'Francia',         v:'Suecia',     k:'2026-06-30T21:00:00Z'},
+  {id:106, fase:'16vos', l:'Mexico',          v:'Ecuador',    k:'2026-07-01T01:00:00Z'},
+  {id:107, fase:'16vos', l:'Inglaterra',      v:'Congo',      k:'2026-07-01T16:00:00Z'},
+  {id:108, fase:'16vos', l:'Belgica',         v:'Senegal',    k:'2026-07-01T20:00:00Z'},
+  {id:109, fase:'16vos', l:'USA',             v:'Bosnia',     k:'2026-07-02T00:00:00Z'},
+  {id:110, fase:'16vos', l:'España',          v:'Austria',    k:'2026-07-02T19:00:00Z'},
+  {id:111, fase:'16vos', l:'Portugal',        v:'Croacia',    k:'2026-07-02T23:00:00Z'},
+  {id:112, fase:'16vos', l:'Suiza',           v:'Argelia',    k:'2026-07-03T03:00:00Z'},
+  {id:113, fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
+  {id:114, fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
+  {id:115, fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
+  {id:200, fase:'8vos', l:'Gan(Alemania/Paraguay)', v:'Gan(Francia/Suecia)',    k:'2026-07-04T17:00:00Z'},
+  {id:201, fase:'8vos', l:'Gan(Sudafrica/Canada)',  v:'Gan(Holanda/Marruecos)', k:'2026-07-05T17:00:00Z'},
+  {id:202, fase:'8vos', l:'Gan(Portugal/Croacia)',  v:'Gan(España/Austria)',    k:'2026-07-04T21:00:00Z'},
+  {id:203, fase:'8vos', l:'Gan(USA/Bosnia)',        v:'Gan(Belgica/Senegal)',   k:'2026-07-05T21:00:00Z'},
+  {id:204, fase:'8vos', l:'Gan(Brasil/Japon)',      v:'Gan(C.Marfil/Noruega)', k:'2026-07-06T17:00:00Z'},
+  {id:205, fase:'8vos', l:'Gan(Mexico/Ecuador)',    v:'Gan(Inglaterra/Congo)', k:'2026-07-07T17:00:00Z'},
+  {id:206, fase:'8vos', l:'Gan(Argentina/CaboVerde)',v:'Gan(Australia/Egipto)',k:'2026-07-06T21:00:00Z'},
+  {id:207, fase:'8vos', l:'Gan(Suiza/Argelia)',     v:'Gan(Colombia/Ghana)',   k:'2026-07-07T21:00:00Z'},
   {id:300, fase:'cuartos', l:'Gan 8vo 1', v:'Gan 8vo 2', k:'2026-07-09T16:00:00Z'},
   {id:301, fase:'cuartos', l:'Gan 8vo 3', v:'Gan 8vo 4', k:'2026-07-10T15:00:00Z'},
   {id:302, fase:'cuartos', l:'Gan 8vo 5', v:'Gan 8vo 6', k:'2026-07-11T17:00:00Z'},
   {id:303, fase:'cuartos', l:'Gan 8vo 7', v:'Gan 8vo 8', k:'2026-07-11T21:00:00Z'},
-  // SEMIS
   {id:400, fase:'semis', l:'Gan Cuarto 1', v:'Gan Cuarto 2', k:'2026-07-14T18:00:00Z'},
   {id:401, fase:'semis', l:'Gan Cuarto 3', v:'Gan Cuarto 4', k:'2026-07-15T18:00:00Z'},
-  // FINAL
   {id:500, fase:'finalfase', l:'3er Lugar A', v:'3er Lugar B', k:'2026-07-18T16:00:00Z'},
   {id:501, fase:'finalfase', l:'Finalista 1', v:'Finalista 2', k:'2026-07-19T15:00:00Z'},
 ];
@@ -220,12 +273,10 @@ function save(id) {
 }
 
 function edit(id) {
-  // Guardar valor anterior para mostrarlo como placeholder
   const prev = local[id];
   delete local[id];
-  localStorage.setItem('adm_res', JSON.stringify(local));
+  localStorage.setItem('adm_res',JSON.stringify(local));
   render();
-  // Pre-llenar inputs con valor anterior
   if (prev) {
     const lInput = document.getElementById('l'+id);
     const vInput = document.getElementById('v'+id);
@@ -296,9 +347,84 @@ async function syncFromSheet() {
   } catch(e){}
 }
 
+// ===== AJUSTES =====
+async function cargarAjustes() {
+  try {
+    const r = await fetch(SCRIPT_URL+'?action=getAjustes&t='+Date.now());
+    ajustesActuales = await r.json();
+  } catch(e) { ajustesActuales = {}; }
+}
+
+function abrirLista() {
+  renderListaAjustes();
+  document.getElementById('modal-lista').style.display='flex';
+}
+
+function renderListaAjustes() {
+  const lista = document.getElementById('lista-ajustes');
+  lista.innerHTML = JUGADORES_LISTA.map(function(nombre) {
+    const pts = ajustesActuales[nombre] || 0;
+    const ptsClass = pts > 0 ? '' : pts < 0 ? 'neg' : 'zero';
+    const ptsStr = pts > 0 ? '+'+pts : String(pts);
+    return '<div class="jug-row">'
+      +'<span class="jug-nombre">'+nombre+'</span>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span class="jug-pts '+ptsClass+'">'+ptsStr+'</span>'
+      +'<button class="jug-edit" onclick="editarJugador(\''+nombre+'\')">Editar</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function editarJugador(nombre) {
+  cerrarModal('modal-lista');
+  document.getElementById('sel-jugador').value = nombre;
+  onJugadorChange();
+  document.getElementById('modal-ajuste').style.display='flex';
+}
+
+function abrirAjusteIndividual() {
+  cerrarModal('modal-lista');
+  document.getElementById('sel-jugador').value='';
+  document.getElementById('inp-ajuste').value='';
+  document.getElementById('info-ajuste').textContent='Sin ajuste previo';
+  document.getElementById('modal-ajuste').style.display='flex';
+}
+
+function onJugadorChange() {
+  const nombre = document.getElementById('sel-jugador').value;
+  const info = document.getElementById('info-ajuste');
+  if (nombre && ajustesActuales[nombre] !== undefined && ajustesActuales[nombre] !== 0) {
+    const val = ajustesActuales[nombre];
+    info.textContent = 'Ajuste actual: ' + (val > 0 ? '+' : '') + val + ' pts';
+    document.getElementById('inp-ajuste').value = val;
+  } else {
+    info.textContent = 'Sin ajuste previo';
+    document.getElementById('inp-ajuste').value = '';
+  }
+}
+
+async function guardarAjuste() {
+  const nombre = document.getElementById('sel-jugador').value;
+  const ajuste = parseInt(document.getElementById('inp-ajuste').value);
+  if (!nombre) { toast('Selecciona un participante', true); return; }
+  if (isNaN(ajuste)) { toast('Ingresa un número válido', true); return; }
+  const url = SCRIPT_URL+'?action=saveAjuste&nombre='+encodeURIComponent(nombre)+'&ajuste='+ajuste;
+  fetch(url, {mode:'no-cors'});
+  new Image().src = url;
+  ajustesActuales[nombre] = ajuste;
+  const signo = ajuste >= 0 ? '+' : '';
+  toast(nombre+': '+signo+ajuste+' pts guardado');
+  cerrarModal('modal-ajuste');
+}
+
+function cerrarModal(id) {
+  document.getElementById(id).style.display='none';
+}
+
 render();
 syncFromSheet();
-setInterval(syncFromSheet,30000);
+cargarAjustes();
+setInterval(syncFromSheet, 30000);
 </script>
 </body>
 </html>

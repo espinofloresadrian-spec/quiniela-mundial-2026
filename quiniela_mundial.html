@@ -639,22 +639,23 @@ async function parseCSV(url, minIdx, maxIdx, startRow) {
 
 async function fetchSheetResults() {
   try {
-    let updated=false;
-    if(await parseCSV(SHEET_CSV_URL)) updated=true;
-    try{if(await parseCSV(SHEET_CSV_16VOS,100,199,0)) updated=true;}catch(e){}
-    try{if(await parseCSV(SHEET_CSV_FINAL,200,999,0)) updated=true;}catch(e){}
-    if(updated) refreshActive();
-  } catch(e) {
-    try {
-      const r=await fetch(APPS_SCRIPT_URL+'?t='+Date.now());
-      const data=await r.json();
-      for(const[key,res] of Object.entries(data)){
-        const idx=parseInt(key);
-        if(!isNaN(idx)&&Array.isArray(res)){
-          savedRes[String(idx)]=res;
-          if(idx>=100) resNuevas[String(idx)]=res;
-        }
+    // Leer directo del Apps Script que ya tiene todo
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), {cache:'no-store'});
+    const data = await r.json();
+    let changed = false;
+    for (const [key, res] of Object.entries(data)) {
+      const idx = parseInt(key);
+      if (!isNaN(idx) && Array.isArray(res)) {
+        savedRes[String(idx)] = res;
+        if (idx >= 100) resNuevas[String(idx)] = res;
+        changed = true;
       }
+    }
+    if (changed) refreshActive();
+  } catch(e) {
+    console.warn('Sin conexion al Sheet:', e);
+  }
+}
       refreshActive();
     } catch(e2){}
   }

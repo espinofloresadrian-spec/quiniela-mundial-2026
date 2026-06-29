@@ -784,59 +784,47 @@ function calcFinal(nombre) {
 }
 
 
-// ===== TABLA GENERAL SIMPLIFICADA =====
-const puntosBase = {
-  'Maluma': 57,
-  'Gamez': 55,
-  'Vanessa': 55,
-  'Ray': 54,
-  'Olguin': 56,
-  'Pedro': 52,
-  'Alonso': 53,
-  'Alex': 53,
-  'Said': 53,
-  'Rafa': 52,
-  'Cesar': 49,
-  'Don Jorge': 49,
-  'Lic Dominguez': 46,
-  'Jesus': 46,
-  'Luis': 48,
-  'Hazael': 48,
-  'Espino': 49,
-  'Papa Espino': 41,
-  'Alejandra': 42,
-  'Noe': 39,
-};
-
 function renderGeneral() {
-  const rows = JUGADORES.map(function(n, i) {
-    const base = puntosBase[n] || 0;
-    const v16 = calc16vos(n);
-    const v8 = calc8vos(n);
-    const vf = calcFinal(n);
-    const total = base + v16 + v8 + vf;
-    return { n, i, base, v16, v8, vf, total };
-  }).sort((a,b) => b.total - a.total);
+  const COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c',
+    '#e67e22','#34495e','#e91e63','#00bcd4','#ff5722','#607d8b',
+    '#8bc34a','#ff9800','#673ab7','#03a9f4','#4caf50','#f44336','#795548','#009688'];
 
-  const max = rows[0]?.total || 1;
+  const rows = JUGADORES.map(function(n, i) {
+    const base = puntosAnteriores[n] || { f1:0, f2:0, f3:0 };
+    const f1 = base.f1, f2 = base.f2, f3 = base.f3;
+    const v16 = calc16vos(n);
+    const v8  = calc8vos(n);
+    const vf  = calcFinal(n);
+    const total = f1 + f2 + f3 + v16 + v8 + vf;
+    return { n, i, f1, f2, f3, v16, v8, vf, total };
+  }).sort((a, b) => b.total - a.total);
+
   document.getElementById('tbody-general').innerHTML = rows.map((r, pos) => {
-    const medal = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
+    const medal    = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
     const posClass = pos===0?'gold':pos===1?'silver':pos===2?'bronze':'';
+    const dyn = r.v16 + r.v8 + r.vf;
+    const c = COLORS[r.i % COLORS.length];
     return '<tr>'
-      + '<td class="rank-col"><span class="pos-badge '+posClass+'">'+(medal||pos+1)+'</span></td>'
-      + '<td class="nombre-cell"><div class="avatar" style="background:'+['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4','#ff5722','#607d8b','#8bc34a','#ff9800','#673ab7','#03a9f4','#4caf50','#f44336','#795548','#009688'][r.i%20]+'">'+r.n[0]+'</div><span>'+r.n+'</span></td>'
-      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.base+'</td>'
-      + '<td class="pts-cell" style="color:var(--amarillo);font-weight:700">'+(r.v16+r.v8+r.vf)+'</td>'
-      + '<td class="pts-cell pts-total">'+r.total+'</td>'
+      + '<td class="pos '+posClass+'" style="text-align:center;font-weight:700">'+(medal||(pos+1))+'</td>'
+      + '<td><div class="nombre-cell">'
+      +   '<div class="avatar" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+r.n[0]+'</div>'
+      +   '<span>'+r.n+'</span></div></td>'
+      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f1+'</td>'
+      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f2+'</td>'
+      + '<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f3+'</td>'
+      + '<td class="pts-cell" style="color:var(--amarillo);font-weight:700">'+(dyn > 0 ? '+'+dyn : '–')+'</td>'
+      + '<td class="pts-cell"><div class="pts-total">'+r.total+'</div></td>'
       + '</tr>';
   }).join('');
 
-  // Update header
   const thead = document.querySelector('#tabla-general thead tr');
   if (thead) {
-    thead.innerHTML = '<th class="rank-col">#</th>'
-      + '<th class="nombre-col">JUGADOR</th>'
-      + '<th class="pts col-hide-mobile">F1+F2+F3</th>'
+    thead.innerHTML =
+        '<th class="num">#</th>'
+      + '<th>JUGADOR</th>'
+      + '<th class="pts col-hide-mobile">F1</th>'
+      + '<th class="pts col-hide-mobile">F2</th>'
+      + '<th class="pts col-hide-mobile">F3</th>'
       + '<th class="pts">16vos+</th>'
       + '<th class="pts">TOTAL</th>';
   }

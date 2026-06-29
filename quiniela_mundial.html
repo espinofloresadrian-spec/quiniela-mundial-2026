@@ -652,7 +652,12 @@ async function fetchSheetResults() {
       }
     }
     if (changed) refreshActive();
-  } catch(e) {
+  } 
+  // Cargar ajustes de puntos
+try {
+  const ra = await fetch(APPS_SCRIPT_URL + '?action=getAjustes&t=' + Date.now());
+  window._ajustes = await ra.json();
+} catch(ea) { window._ajustes = window._ajustes || {}; } catch(e) {
     console.warn('Sin conexion al Sheet:', e);
   }
 }

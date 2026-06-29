@@ -691,16 +691,30 @@ async function renderTabFinal() {
   renderFaseFinal();
 }
 
+function updateLiveBadge() {
+  const now = Date.now();
+  const live = partidos16.some(function(p) {
+    if (resNuevas[String(p.idx)]) return false;
+    const kick = new Date(p.k).getTime();
+    return now >= kick && now < kick + 115*60*1000;
+  });
+  const b = document.querySelector('.live-badge');
+  if (b) b.style.display = live ? 'flex' : 'none';
+}
+
 function recalcular(){renderGeneral();}
 
 // ===== INIT =====
 renderGeneral();
-document.querySelector('.live-badge').style.display='none';
+updateLiveBadge();
 leerProsSheet('pros16').then(function(data) {
   pros16 = data;
   fetchSheetResults();
 });
-setInterval(fetchSheetResults, 30000);
+setInterval(function() {
+  fetchSheetResults();
+  updateLiveBadge();
+}, 30000);
 </script>
 </body>
 </html>

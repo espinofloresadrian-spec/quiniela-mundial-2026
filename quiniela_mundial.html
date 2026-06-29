@@ -988,13 +988,14 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6H
 const SHEET_CSV_16VOS = 'https://docs.google.com/spreadsheets/d/1ijHfal7W60gjF1u6HVCdvG78ltm_c9LwPX4ArokbXQo/gviz/tq?tqx=out:csv&sheet=Resultados%2016vos';
 const SCRIPT_URL_W = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
-async function parseCSVResults(url, minIdx, maxIdx) {
+async function parseCSVResults(url, minIdx, maxIdx, startRow) {
   const r = await fetch(url + '&t=' + Date.now());
   if (!r.ok) return false;
   const text = await r.text();
   const lines = text.trim().split('\n');
   let updated = false;
-  for (let i = 1; i < lines.length; i++) {
+  const from = (startRow !== undefined) ? startRow : 1;
+  for (let i = from; i < lines.length; i++) {
     const cols = lines[i].replace(/"/g,'').split(',');
     if (cols.length >= 4 && cols[0] !== '') {
       const idx = parseInt(cols[0]);
@@ -1021,7 +1022,7 @@ async function fetchSheetResults() {
     if (u1) updated = true;
     // 16vos resultados
     try {
-      const u2 = await parseCSVResults(SHEET_CSV_16VOS);
+      const u2 = await parseCSVResults(SHEET_CSV_16VOS, 100, 199, 0);
       if (u2) updated = true;
     } catch(e2) { console.log('Sin resultados 16vos aun'); }
 

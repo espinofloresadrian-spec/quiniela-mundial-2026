@@ -111,7 +111,8 @@
           <th class="pts col-hide-mobile">F1</th>
           <th class="pts col-hide-mobile">F2</th>
           <th class="pts col-hide-mobile">F3</th>
-          <th class="pts">16vos+</th>
+          <th class="pts col-hide-mobile">16vos</th>
+          <th class="pts">8vos+</th>
           <th class="pts">TOTAL</th>
         </tr></thead>
         <tbody id="tbody-general"></tbody>
@@ -142,27 +143,28 @@
   </section>
 </main>
 <script>
+// ===== PUNTOS FIJOS F1+F2+F3+F16 =====
 const puntosAnteriores = {
-  'Olguin':        { f1:13, f2:21, f3:22 },
-  'Pedro':         { f1:16, f2:20, f3:16 },
-  'Luis':          { f1:13, f2:16, f3:19 },
-  'Rafa':          { f1:12, f2:22, f3:18 },
-  'Alonso':        { f1:17, f2:20, f3:16 },
-  'Vanessa':       { f1:17, f2:19, f3:19 },
-  'Espino':        { f1:12, f2:12, f3:24 },
-  'Papa Espino':   { f1:14, f2:16, f3:10 },
-  'Said':          { f1:16, f2:19, f3:18 },
-  'Cesar':         { f1:14, f2:20, f3:15 },
-  'Noe':           { f1:11, f2:14, f3:12 },
-  'Don Jorge':     { f1:12, f2:19, f3:18 },
-  'Maluma':        { f1:16, f2:21, f3:20 },
-  'Alex':          { f1:15, f2:19, f3:19 },
-  'Hazael':        { f1:14, f2:17, f3:17 },
-  'Gamez':         { f1:15, f2:22, f3:18 },
-  'Alejandra':     { f1: 8, f2:15, f3:19 },
-  'Lic Dominguez': { f1:16, f2:17, f3:13 },
-  'Ray':           { f1:16, f2:18, f3:20 },
-  'Jesus':         { f1:13, f2:15, f3:18 },
+  'Olguin':        { f1:13, f2:21, f3:22, f16:14 },
+  'Pedro':         { f1:16, f2:20, f3:16, f16:17 },
+  'Luis':          { f1:13, f2:16, f3:19, f16: 9 },
+  'Rafa':          { f1:12, f2:22, f3:18, f16:16 },
+  'Alonso':        { f1:17, f2:20, f3:16, f16:15 },
+  'Vanessa':       { f1:17, f2:19, f3:19, f16: 8 },
+  'Espino':        { f1:12, f2:12, f3:24, f16:18 },
+  'Papa Espino':   { f1:14, f2:16, f3:10, f16:16 },
+  'Said':          { f1:16, f2:19, f3:18, f16:15 },
+  'Cesar':         { f1:14, f2:20, f3:15, f16:12 },
+  'Noe':           { f1:11, f2:14, f3:12, f16:11 },
+  'Don Jorge':     { f1:12, f2:19, f3:18, f16:11 },
+  'Maluma':        { f1:16, f2:21, f3:20, f16:15 },
+  'Alex':          { f1:15, f2:19, f3:19, f16:14 },
+  'Hazael':        { f1:14, f2:17, f3:17, f16: 9 },
+  'Gamez':         { f1:15, f2:22, f3:18, f16:12 },
+  'Alejandra':     { f1: 8, f2:15, f3:19, f16:10 },
+  'Lic Dominguez': { f1:16, f2:17, f3:13, f16:11 },
+  'Ray':           { f1:16, f2:18, f3:20, f16:15 },
+  'Jesus':         { f1:13, f2:15, f3:18, f16:15 },
 };
 const JUGADORES = Object.keys(puntosAnteriores);
 const JUGADORES_ORD = ['Maluma','Gamez','Vanessa','Ray','Olguin','Pedro','Alonso','Alex','Said','Rafa','Cesar','Don Jorge','Lic Dominguez','Jesus','Luis','Hazael','Espino','Papa Espino','Alejandra','Noe'];
@@ -298,27 +300,26 @@ function calcFase(nombre, partidos, pros) {
 // ===== RENDER TABLA GENERAL =====
 function renderGeneral() {
   const rows = JUGADORES.map(function(n, i) {
-    const base = puntosAnteriores[n] || {f1:0,f2:0,f3:0};
-    const v16 = calcFase(n, partidos16, pros16);
+    const base = puntosAnteriores[n] || {f1:0,f2:0,f3:0,f16:0};
     const v8  = calcFase(n, partidos8, pros8);
     const vf  = calcFase(n, [...partidosCuartos,...partidosSemis,...partidosFinal], prosFinal);
     const ajuste = (window._ajustes && window._ajustes[n]) ? window._ajustes[n] : 0;
-    const total = base.f1 + base.f2 + base.f3 + v16 + v8 + vf + ajuste;
-    return {n, i, f1:base.f1, f2:base.f2, f3:base.f3, v16, v8, vf, ajuste, total};
+    const total = base.f1 + base.f2 + base.f3 + base.f16 + v8 + vf + ajuste;
+    return {n, i, f1:base.f1, f2:base.f2, f3:base.f3, f16:base.f16, v8, vf, ajuste, total};
   }).sort(function(a,b){return b.total-a.total;});
 
   document.getElementById('tbody-general').innerHTML = rows.map(function(r, pos) {
     const medal = pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
     const posClass = pos===0?'gold':pos===1?'silver':pos===2?'bronze':'';
-    const dyn = r.v16 + r.v8 + r.vf;
+    const dyn = r.v8 + r.vf;
     const c = COLORS[r.i % COLORS.length];
-    // Mostrar ajuste si existe
-       return '<tr>'
+    return '<tr>'
       +'<td class="pos '+posClass+'" style="text-align:center;font-weight:700">'+(medal||(pos+1))+'</td>'
       +'<td><div class="nombre-cell"><div class="avatar" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+r.n[0]+'</div><span>'+r.n+'</span></div></td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f1+'</td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f2+'</td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f3+'</td>'
+      +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f16+'</td>'
       +'<td class="pts-cell" style="color:var(--amarillo);font-weight:700">'+(dyn>0?'+'+dyn:'–')+'</td>'
       +'<td class="pts-cell"><div class="pts-total">'+r.total+'</div></td>'
       +'</tr>';
@@ -508,7 +509,6 @@ async function fetchSheetResults() {
     console.warn('Sin conexion:', e);
   }
 
-  // Cargar ajustes de puntos por separado
   try {
     const ra = await fetch(APPS_SCRIPT_URL + '?action=getAjustes&t=' + Date.now());
     const ajustesData = await ra.json();
@@ -557,7 +557,7 @@ async function renderTabFinal() {
 
 function updateLiveBadge() {
   const now = Date.now();
-  const live = partidos16.some(function(p) {
+  const live = partidos8.some(function(p) {
     if (resNuevas[String(p.idx)]) return false;
     const kick = new Date(p.k).getTime();
     return now >= kick && now < kick + 115*60*1000;
@@ -571,8 +571,8 @@ function recalcular() { fetchSheetResults(); }
 // ===== INIT =====
 renderGeneral();
 updateLiveBadge();
-leerProsSheet('pros16').then(function(data) {
-  pros16 = data;
+leerProsSheet('pros8').then(function(data) {
+  pros8 = data;
   fetchSheetResults();
 });
 setInterval(function() {

@@ -8,8 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0a0f0a;color:#e8f5e9;min-height:100vh;padding-bottom:70px}
 header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-size:16px;font-weight:700;color:#00C853}
-.logo span{color:#FFD600}
+.logo{font-size:16px;font-weight:700;color:#00C853}.logo span{color:#FFD600}
 .sync-btn{background:#00C853;color:#000;border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
 .status{background:#111;padding:8px 16px;font-size:12px;color:#6b8f6b;display:flex;align-items:center;gap:8px;border-bottom:1px solid #2a3a2a}
 .dot{width:8px;height:8px;border-radius:50%;background:#00C853;flex-shrink:0}
@@ -62,8 +61,7 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 .jug-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0d1a0d;border-radius:8px;border:1px solid #2a3a2a}
 .jug-nombre{font-size:14px;font-weight:600}
 .jug-pts{font-size:18px;font-weight:700;color:#FFD600}
-.jug-pts.neg{color:#FF1744}
-.jug-pts.zero{color:#6b8f6b}
+.jug-pts.neg{color:#FF1744}.jug-pts.zero{color:#6b8f6b}
 .jug-edit{padding:4px 12px;border-radius:6px;background:transparent;border:1px solid #2a3a2a;color:#6b8f6b;font-size:12px;cursor:pointer}
 </style>
 </head>
@@ -72,7 +70,7 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
   <div class="logo">ADMIN <span>QUINIELA</span></div>
   <button class="sync-btn" onclick="syncAll()">Sincronizar todo</button>
 </header>
-<div class="status"><div class="dot" id="dot"></div><span id="stxt">Listo</span></div>
+<div class="status"><div class="dot" id="dot"></div><span id="stxt">Cargando...</span></div>
 <div class="filters">
   <button class="ftab on" onclick="setFilter('all',this)">Todos</button>
   <button class="ftab" onclick="setFilter('pending',this)">Pendientes</button>
@@ -88,7 +86,17 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 <div class="list" id="list"></div>
 <div class="toast" id="toast"></div>
 
-<!-- MODAL AJUSTE INDIVIDUAL -->
+<div class="modal-overlay" id="modal-lista">
+  <div class="modal-box" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-title">⚖️ Penalizaciones / Bonos</div>
+    <div class="jugadores-lista" id="lista-ajustes"></div>
+    <div style="display:flex;gap:8px">
+      <button class="modal-btn-cancel" onclick="cerrarModal('modal-lista')">Cerrar</button>
+      <button class="modal-btn-save" onclick="abrirAjusteIndividual()">+ Nuevo ajuste</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-ajuste">
   <div class="modal-box">
     <div class="modal-title">⚖️ Ajuste de Puntos</div>
@@ -103,24 +111,12 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
       <option>Gamez</option><option>Alejandra</option><option>Lic Dominguez</option>
       <option>Ray</option><option>Jesus</option>
     </select>
-    <label class="modal-label">Puntos (negativo = penalización, positivo = bonus)</label>
+    <label class="modal-label">Puntos (negativo = penalización)</label>
     <input class="modal-input" type="number" id="inp-ajuste" placeholder="ej: -2">
     <div class="modal-info" id="info-ajuste">Sin ajuste previo</div>
     <div class="modal-btns">
       <button class="modal-btn-cancel" onclick="cerrarModal('modal-ajuste')">Cancelar</button>
       <button class="modal-btn-save" onclick="guardarAjuste()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL LISTA AJUSTES -->
-<div class="modal-overlay" id="modal-lista">
-  <div class="modal-box" style="max-height:80vh;overflow-y:auto">
-    <div class="modal-title">⚖️ Penalizaciones / Bonos</div>
-    <div class="jugadores-lista" id="lista-ajustes"></div>
-    <div style="display:flex;gap:8px">
-      <button class="modal-btn-cancel" onclick="cerrarModal('modal-lista')">Cerrar</button>
-      <button class="modal-btn-save" onclick="abrirAjusteIndividual()">+ Nuevo ajuste</button>
     </div>
   </div>
 </div>
@@ -136,9 +132,90 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X
 const DUR = 115 * 60 * 1000;
 let filter = 'all';
 let ajustesActuales = {};
-
+const resNuevas = {};
 const JUGADORES_LISTA = ['Olguin','Pedro','Luis','Rafa','Alonso','Vanessa','Espino','Papa Espino','Said','Cesar','Noe','Don Jorge','Maluma','Alex','Hazael','Gamez','Alejandra','Lic Dominguez','Ray','Jesus'];
 
+// ===== BRACKET =====
+const p16data = [
+  {id:100,l:'Sudafrica',v:'Canada'},{id:101,l:'Brasil',v:'Japon'},
+  {id:102,l:'Alemania',v:'Paraguay'},{id:103,l:'Holanda',v:'Marruecos'},
+  {id:104,l:'Costa de Marfil',v:'Noruega'},{id:105,l:'Francia',v:'Suecia'},
+  {id:106,l:'Mexico',v:'Ecuador'},{id:107,l:'Inglaterra',v:'Congo'},
+  {id:108,l:'Belgica',v:'Senegal'},{id:109,l:'USA',v:'Bosnia'},
+  {id:110,l:'España',v:'Austria'},{id:111,l:'Portugal',v:'Croacia'},
+  {id:112,l:'Suiza',v:'Argelia'},{id:113,l:'Australia',v:'Egipto'},
+  {id:114,l:'Argentina',v:'Cabo Verde'},{id:115,l:'Colombia',v:'Ghana'},
+];
+const p8data = [
+  {id:200,p16a:102,p16b:105},{id:201,p16a:100,p16b:103},
+  {id:202,p16a:111,p16b:110},{id:203,p16a:109,p16b:108},
+  {id:204,p16a:101,p16b:104},{id:205,p16a:106,p16b:107},
+  {id:206,p16a:114,p16b:113},{id:207,p16a:112,p16b:115},
+];
+const pCuartosData = [
+  {id:300,p8a:200,p8b:201},{id:301,p8a:202,p8b:203},
+  {id:302,p8a:204,p8b:205},{id:303,p8a:206,p8b:207},
+];
+const pSemisData = [
+  {id:400,pQa:300,pQb:301},{id:401,pQa:302,pQb:303},
+];
+
+function ganador16(id) {
+  const res=resNuevas[String(id)]; if (!res) return null;
+  const p=p16data.find(function(x){return x.id===id;}); if (!p) return null;
+  return res[0]>res[1]?p.l:p.v;
+}
+function ganador8(id) {
+  const res=resNuevas[String(id)]; if (!res) return null;
+  const p=p8data.find(function(x){return x.id===id;}); if (!p) return null;
+  const l=ganador16(p.p16a), v=ganador16(p.p16b);
+  if (!l||!v) return null;
+  return res[0]>res[1]?l:v;
+}
+function ganadorCuarto(id) {
+  const res=resNuevas[String(id)]; if (!res) return null;
+  const p=pCuartosData.find(function(x){return x.id===id;}); if (!p) return null;
+  const l=ganador8(p.p8a), v=ganador8(p.p8b);
+  if (!l||!v) return null;
+  return res[0]>res[1]?l:v;
+}
+
+function getNomL(p) {
+  if (p.fase==='8vos') {
+    const g=ganador16(p.p16a);
+    if (g) return g;
+    const x=p16data.find(function(x){return x.id===p.p16a;});
+    return x?x.l+'/'+x.v:'?';
+  }
+  if (p.fase==='cuartos') return ganador8(p.p8a)||'Gan 8vo '+(p.p8a-199);
+  if (p.fase==='semis') return ganadorCuarto(p.pQa)||'Gan Cuarto '+(p.pQa-299);
+  if (p.fase==='finalfase') {
+    const semi=pSemisData.find(function(s){return s.id===p.pSa;}); if (!semi) return '?';
+    const res=resNuevas[String(p.pSa)]; if (!res) return '?';
+    const l=ganadorCuarto(semi.pQa), v=ganadorCuarto(semi.pQb); if (!l||!v) return '?';
+    return p.id===500?(res[0]>res[1]?v:l):(res[0]>res[1]?l:v);
+  }
+  return p.l;
+}
+function getNomV(p) {
+  if (p.fase==='8vos') {
+    const g=ganador16(p.p16b);
+    if (g) return g;
+    const x=p16data.find(function(x){return x.id===p.p16b;});
+    return x?x.l+'/'+x.v:'?';
+  }
+  if (p.fase==='cuartos') return ganador8(p.p8b)||'Gan 8vo '+(p.p8b-199);
+  if (p.fase==='semis') return ganadorCuarto(p.pQb)||'Gan Cuarto '+(p.pQb-299);
+  if (p.fase==='finalfase') {
+    const semi=pSemisData.find(function(s){return s.id===p.pSb;}); if (!semi) return '?';
+    const res=resNuevas[String(p.pSb)]; if (!res) return '?';
+    const l=ganadorCuarto(semi.pQa), v=ganadorCuarto(semi.pQb); if (!l||!v) return '?';
+    return p.id===500?(res[0]>res[1]?l:v):(res[0]>res[1]?v:l);
+  }
+  return p.v;
+}
+
+// ===== TODOS LOS PARTIDOS =====
 const partidos = [
   {id:0,  fase:'fase3', l:'Suiza',       v:'Canada',         k:'2026-06-25T01:00:00Z'},
   {id:1,  fase:'fase3', l:'Bosnia',      v:'Catar',          k:'2026-06-25T01:00:00Z'},
@@ -164,84 +241,79 @@ const partidos = [
   {id:21, fase:'fase3', l:'Congo',       v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
   {id:22, fase:'fase3', l:'Argelia',     v:'Austria',        k:'2026-06-28T03:00:00Z'},
   {id:23, fase:'fase3', l:'Jordania',    v:'Argentina',      k:'2026-06-28T03:00:00Z'},
-  {id:100, fase:'16vos', l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
-  {id:101, fase:'16vos', l:'Brasil',          v:'Japon',      k:'2026-06-29T17:00:00Z'},
-  {id:102, fase:'16vos', l:'Alemania',        v:'Paraguay',   k:'2026-06-29T20:30:00Z'},
-  {id:103, fase:'16vos', l:'Holanda',         v:'Marruecos',  k:'2026-06-30T01:00:00Z'},
-  {id:104, fase:'16vos', l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T17:00:00Z'},
-  {id:105, fase:'16vos', l:'Francia',         v:'Suecia',     k:'2026-06-30T21:00:00Z'},
-  {id:106, fase:'16vos', l:'Mexico',          v:'Ecuador',    k:'2026-07-01T01:00:00Z'},
-  {id:107, fase:'16vos', l:'Inglaterra',      v:'Congo',      k:'2026-07-01T16:00:00Z'},
-  {id:108, fase:'16vos', l:'Belgica',         v:'Senegal',    k:'2026-07-01T20:00:00Z'},
-  {id:109, fase:'16vos', l:'USA',             v:'Bosnia',     k:'2026-07-02T00:00:00Z'},
-  {id:110, fase:'16vos', l:'España',          v:'Austria',    k:'2026-07-02T19:00:00Z'},
-  {id:111, fase:'16vos', l:'Portugal',        v:'Croacia',    k:'2026-07-02T23:00:00Z'},
-  {id:112, fase:'16vos', l:'Suiza',           v:'Argelia',    k:'2026-07-03T03:00:00Z'},
-  {id:113, fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
-  {id:114, fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
-  {id:115, fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
-  {id:200, fase:'8vos', l:'Gan(Alemania/Paraguay)', v:'Gan(Francia/Suecia)',    k:'2026-07-04T17:00:00Z'},
-  {id:201, fase:'8vos', l:'Gan(Sudafrica/Canada)',  v:'Gan(Holanda/Marruecos)', k:'2026-07-05T17:00:00Z'},
-  {id:202, fase:'8vos', l:'Gan(Portugal/Croacia)',  v:'Gan(España/Austria)',    k:'2026-07-04T21:00:00Z'},
-  {id:203, fase:'8vos', l:'Gan(USA/Bosnia)',        v:'Gan(Belgica/Senegal)',   k:'2026-07-05T21:00:00Z'},
-  {id:204, fase:'8vos', l:'Gan(Brasil/Japon)',      v:'Gan(C.Marfil/Noruega)', k:'2026-07-06T17:00:00Z'},
-  {id:205, fase:'8vos', l:'Gan(Mexico/Ecuador)',    v:'Gan(Inglaterra/Congo)', k:'2026-07-07T17:00:00Z'},
-  {id:206, fase:'8vos', l:'Gan(Argentina/CaboVerde)',v:'Gan(Australia/Egipto)',k:'2026-07-06T21:00:00Z'},
-  {id:207, fase:'8vos', l:'Gan(Suiza/Argelia)',     v:'Gan(Colombia/Ghana)',   k:'2026-07-07T21:00:00Z'},
-  {id:300, fase:'cuartos', l:'Gan 8vo 1', v:'Gan 8vo 2', k:'2026-07-09T16:00:00Z'},
-  {id:301, fase:'cuartos', l:'Gan 8vo 3', v:'Gan 8vo 4', k:'2026-07-10T15:00:00Z'},
-  {id:302, fase:'cuartos', l:'Gan 8vo 5', v:'Gan 8vo 6', k:'2026-07-11T17:00:00Z'},
-  {id:303, fase:'cuartos', l:'Gan 8vo 7', v:'Gan 8vo 8', k:'2026-07-11T21:00:00Z'},
-  {id:400, fase:'semis', l:'Gan Cuarto 1', v:'Gan Cuarto 2', k:'2026-07-14T18:00:00Z'},
-  {id:401, fase:'semis', l:'Gan Cuarto 3', v:'Gan Cuarto 4', k:'2026-07-15T18:00:00Z'},
-  {id:500, fase:'finalfase', l:'3er Lugar A', v:'3er Lugar B', k:'2026-07-18T16:00:00Z'},
-  {id:501, fase:'finalfase', l:'Finalista 1', v:'Finalista 2', k:'2026-07-19T15:00:00Z'},
+  {id:100,fase:'16vos', l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
+  {id:101,fase:'16vos', l:'Brasil',          v:'Japon',      k:'2026-06-29T17:00:00Z'},
+  {id:102,fase:'16vos', l:'Alemania',        v:'Paraguay',   k:'2026-06-29T20:30:00Z'},
+  {id:103,fase:'16vos', l:'Holanda',         v:'Marruecos',  k:'2026-06-30T01:00:00Z'},
+  {id:104,fase:'16vos', l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T17:00:00Z'},
+  {id:105,fase:'16vos', l:'Francia',         v:'Suecia',     k:'2026-06-30T21:00:00Z'},
+  {id:106,fase:'16vos', l:'Mexico',          v:'Ecuador',    k:'2026-07-01T01:00:00Z'},
+  {id:107,fase:'16vos', l:'Inglaterra',      v:'Congo',      k:'2026-07-01T16:00:00Z'},
+  {id:108,fase:'16vos', l:'Belgica',         v:'Senegal',    k:'2026-07-01T20:00:00Z'},
+  {id:109,fase:'16vos', l:'USA',             v:'Bosnia',     k:'2026-07-02T00:00:00Z'},
+  {id:110,fase:'16vos', l:'España',          v:'Austria',    k:'2026-07-02T19:00:00Z'},
+  {id:111,fase:'16vos', l:'Portugal',        v:'Croacia',    k:'2026-07-02T23:00:00Z'},
+  {id:112,fase:'16vos', l:'Suiza',           v:'Argelia',    k:'2026-07-03T03:00:00Z'},
+  {id:113,fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
+  {id:114,fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
+  {id:115,fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
+  {id:200,fase:'8vos',  p16a:102,p16b:105,   k:'2026-07-04T17:00:00Z'},
+  {id:201,fase:'8vos',  p16a:100,p16b:103,   k:'2026-07-05T17:00:00Z'},
+  {id:202,fase:'8vos',  p16a:111,p16b:110,   k:'2026-07-04T21:00:00Z'},
+  {id:203,fase:'8vos',  p16a:109,p16b:108,   k:'2026-07-05T21:00:00Z'},
+  {id:204,fase:'8vos',  p16a:101,p16b:104,   k:'2026-07-06T17:00:00Z'},
+  {id:205,fase:'8vos',  p16a:106,p16b:107,   k:'2026-07-07T17:00:00Z'},
+  {id:206,fase:'8vos',  p16a:114,p16b:113,   k:'2026-07-06T21:00:00Z'},
+  {id:207,fase:'8vos',  p16a:112,p16b:115,   k:'2026-07-07T21:00:00Z'},
+  {id:300,fase:'cuartos',p8a:200,p8b:201,    k:'2026-07-09T16:00:00Z'},
+  {id:301,fase:'cuartos',p8a:202,p8b:203,    k:'2026-07-10T15:00:00Z'},
+  {id:302,fase:'cuartos',p8a:204,p8b:205,    k:'2026-07-11T17:00:00Z'},
+  {id:303,fase:'cuartos',p8a:206,p8b:207,    k:'2026-07-11T21:00:00Z'},
+  {id:400,fase:'semis',  pQa:300,pQb:301,    k:'2026-07-14T18:00:00Z'},
+  {id:401,fase:'semis',  pQa:302,pQb:303,    k:'2026-07-15T18:00:00Z'},
+  {id:500,fase:'finalfase',pSa:400,pSb:401,  k:'2026-07-18T16:00:00Z'},
+  {id:501,fase:'finalfase',pSa:400,pSb:401,  k:'2026-07-19T15:00:00Z'},
 ];
 
 let local = JSON.parse(localStorage.getItem('adm_res') || '{}');
 
 function getState(p) {
-  const now = Date.now(), kick = new Date(p.k).getTime(), end = kick + DUR;
-  const res = local[p.id] !== undefined ? local[p.id] : null;
-  if (res) return {s:'done', res};
-  if (now >= kick && now < end) return {s:'live', min: Math.floor((now-kick)/60000)};
-  if (now < kick) return {s:'soon', kick};
-  return {s:'soon', kick};
+  const now=Date.now(), kick=new Date(p.k).getTime(), end=kick+DUR;
+  const res=local[p.id]!==undefined?local[p.id]:null;
+  if (res) return {s:'done',res};
+  if (now>=kick&&now<end) return {s:'live',min:Math.floor((now-kick)/60000)};
+  if (now<kick) return {s:'soon',kick};
+  return {s:'soon',kick};
 }
 
 function labelPartido(p) {
-  const fases = {fase3:'F3', '16vos':'16vos', '8vos':'8vos', cuartos:'Cuartos', semis:'Semis', finalfase:'Final'};
-  return (fases[p.fase]||'') + ' P' + p.id;
+  const fases={fase3:'F3','16vos':'16vos','8vos':'8vos',cuartos:'Cuartos',semis:'Semis',finalfase:'Final'};
+  return (fases[p.fase]||'')+' P'+p.id;
 }
 
 function render() {
-  const c = document.getElementById('list');
-  const list = partidos.filter(function(p) {
-    const st = getState(p);
+  const c=document.getElementById('list');
+  const list=partidos.filter(function(p){
+    const st=getState(p);
     if (filter==='pending') return st.s==='soon';
     if (filter==='live') return st.s==='live';
     if (filter==='done') return st.s==='done';
-    return filter==='all' || p.fase===filter;
+    return filter==='all'||p.fase===filter;
   });
-  if (!list.length) { c.innerHTML='<div class="empty">Sin partidos en esta categoría</div>'; return; }
-  c.innerHTML = list.map(function(p) {
-    const st = getState(p);
-    const editable = Date.now() >= new Date(p.k).getTime();
-    let badge='', cardCls='';
-    if (st.s==='live') {
-      badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>"; cardCls='live';
-    } else if (st.s==='done') {
-      badge='<div class="badge b-done">FINALIZADO</div>'; cardCls='done';
-    } else {
-      const kd=new Date(p.k);
-      const h=kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'})+' '+kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'});
-      badge='<div class="badge b-soon">'+h+' PDT</div>';
-    }
+  if (!list.length){c.innerHTML='<div class="empty">Sin partidos en esta categoría</div>';return;}
+  c.innerHTML=list.map(function(p){
+    const st=getState(p);
+    const editable=Date.now()>=new Date(p.k).getTime();
+    const lNom=getNomL(p), vNom=getNomV(p);
+    let badge='',cardCls='';
+    if (st.s==='live'){badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>";cardCls='live';}
+    else if (st.s==='done'){badge='<div class="badge b-done">FINALIZADO</div>';cardCls='done';}
+    else{const kd=new Date(p.k);badge='<div class="badge b-soon">'+kd.toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short',timeZone:'America/Tijuana'})+' '+kd.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',timeZone:'America/Tijuana'})+' PDT</div>';}
     let body='';
-    if (st.res) {
+    if (st.res){
       body='<div class="saved-sc">'+st.res[0]+' — '+st.res[1]+'</div>';
       if (editable) body+='<button class="edit-btn" onclick="edit('+p.id+')">Cambiar resultado</button>';
-    } else if (editable) {
+    } else if (editable){
       body='<div class="score-row">'
         +'<input class="sinput" type="number" min="0" max="20" id="l'+p.id+'" placeholder="0">'
         +'<span class="ssep">-</span>'
@@ -254,9 +326,7 @@ function render() {
     }
     return '<div class="card '+cardCls+'">'
       +'<div class="card-head"><div class="card-num">'+labelPartido(p)+'</div>'+badge+'</div>'
-      +'<div class="card-body">'
-      +'<div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'
-      +body+'</div></div>';
+      +'<div class="card-body"><div class="teams"><div class="tname">'+lNom+'</div><div class="vs">VS</div><div class="tname">'+vNom+'</div></div>'+body+'</div></div>';
   }).join('');
 }
 
@@ -267,42 +337,40 @@ function save(id) {
   const btn=document.getElementById('btn'+id);
   if(btn){btn.textContent='Enviando...';btn.classList.add('sending');}
   local[id]=[lv,vv];
+  resNuevas[String(id)]=[lv,vv]; // actualizar dinamico inmediatamente
   localStorage.setItem('adm_res',JSON.stringify(local));
-  sendToSheet(id,lv,vv);
-  setTimeout(function(){toast(labelPartido(partidos.find(function(p){return p.id===id;}))+': '+lv+'-'+vv+' guardado');render();},600);
+  const p=partidos.find(function(p){return p.id===id;});
+  sendToSheet(id,lv,vv,getNomL(p)||'?',getNomV(p)||'?');
+  setTimeout(function(){toast(labelPartido(p)+': '+lv+'-'+vv+' guardado');render();},600);
 }
 
 function edit(id) {
-  const prev = local[id];
+  const prev=local[id];
   delete local[id];
   localStorage.setItem('adm_res',JSON.stringify(local));
   render();
-  if (prev) {
-    const lInput = document.getElementById('l'+id);
-    const vInput = document.getElementById('v'+id);
-    if (lInput) lInput.value = prev[0];
-    if (vInput) vInput.value = prev[1];
+  if (prev){
+    setTimeout(function(){
+      const lI=document.getElementById('l'+id),vI=document.getElementById('v'+id);
+      if(lI) lI.value=prev[0]; if(vI) vI.value=prev[1];
+    },100);
   }
 }
 
-function sendToSheet(id, l, v) {
-  const p = partidos.find(function(x){return x.id===id;});
-  if(!p) return;
-  const params='?action=save&idx='+id+'&partido='+encodeURIComponent(p.l+' vs '+p.v)+'&local='+l+'&visita='+v;
-  const url = SCRIPT_URL+params;
-  fetch(url,{mode:'no-cors'})
-    .then(function(){setStatus('Guardado en Sheet',false);})
-    .catch(function(){setStatus('Sin conexion',true);});
+function sendToSheet(id,l,v,lNom,vNom){
+  const params='?action=save&idx='+id+'&partido='+encodeURIComponent((lNom||'?')+' vs '+(vNom||'?'))+'&local='+l+'&visita='+v;
+  const url=SCRIPT_URL+params;
+  fetch(url,{mode:'no-cors'}).then(function(){setStatus('Guardado',false);}).catch(function(){setStatus('Sin conexion',true);});
   new Image().src=url;
 }
 
-async function syncAll() {
+async function syncAll(){
   setStatus('Sincronizando...',false,true);
   let i=0;
   for(const[id,res] of Object.entries(local)){
-    sendToSheet(parseInt(id),res[0],res[1]);
-    await new Promise(function(r){setTimeout(r,400);});
-    i++;
+    const p=partidos.find(function(p){return p.id===parseInt(id);});
+    sendToSheet(parseInt(id),res[0],res[1],p?getNomL(p):'?',p?getNomV(p):'?');
+    await new Promise(function(r){setTimeout(r,400);}); i++;
   }
   toast('Sincronizados '+i+' resultados');
   setStatus('Listo',false);
@@ -311,119 +379,77 @@ async function syncAll() {
 function setFilter(f,btn){
   filter=f;
   document.querySelectorAll('.ftab,.nbtn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
-  render();
+  btn.classList.add('on'); render();
 }
-
 function setStatus(msg,err,loading){
   const d=document.getElementById('dot'),t=document.getElementById('stxt');
-  d.className='dot'+(err?' err':loading?' spin':'');
-  t.textContent=msg;
+  d.className='dot'+(err?' err':loading?' spin':''); t.textContent=msg;
 }
-
 function toast(msg,err){
   const t=document.getElementById('toast');
   t.textContent=msg;t.className='toast'+(err?' err':'')+' show';
   setTimeout(function(){t.className='toast'+(err?' err':'');},2500);
 }
-
 function exportar(){
-  let txt='QUINIELA MUNDIAL 2026 - Resultados\n\n';
-  partidos.forEach(function(p){const r=local[p.id];txt+=labelPartido(p)+' '+p.l+' vs '+p.v+': '+(r?r[0]+'-'+r[1]:'Pendiente')+'\n';});
+  let txt='QUINIELA MUNDIAL 2026\n\n';
+  partidos.forEach(function(p){const r=local[p.id];txt+=labelPartido(p)+' '+getNomL(p)+' vs '+getNomV(p)+': '+(r?r[0]+'-'+r[1]:'Pendiente')+'\n';});
   if(navigator.share) navigator.share({text:txt});
   else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){toast('Copiado');});
 }
 
-async function syncFromSheet() {
-  try {
+async function syncFromSheet(){
+  try{
     const r=await fetch(SCRIPT_URL+'?t='+Date.now(),{cache:'no-store'});
     const data=await r.json();
     let changed=false;
     for(const[idx,res] of Object.entries(data)){
       const id=parseInt(idx);
-if(!isNaN(id)&&Array.isArray(res)){local[id]=res;if(id>=100)resNuevas[String(id)]=res;changed=true;}    }
+      if(!isNaN(id)&&Array.isArray(res)){
+        local[id]=res;
+        if(id>=100) resNuevas[String(id)]=res;
+        changed=true;
+      }
+    }
     if(changed){localStorage.setItem('adm_res',JSON.stringify(local));render();}
-  } catch(e){}
+    setStatus('Listo',false);
+  }catch(e){setStatus('Sin conexion',true);}
 }
 
 // ===== AJUSTES =====
-async function cargarAjustes() {
-  try {
-    const r = await fetch(SCRIPT_URL+'?action=getAjustes&t='+Date.now());
-    ajustesActuales = await r.json();
-  } catch(e) { ajustesActuales = {}; }
+async function cargarAjustes(){
+  try{const r=await fetch(SCRIPT_URL+'?action=getAjustes&t='+Date.now());ajustesActuales=await r.json();}
+  catch(e){ajustesActuales={};}
 }
-
-function abrirLista() {
-  renderListaAjustes();
-  document.getElementById('modal-lista').style.display='flex';
-}
-
-function renderListaAjustes() {
-  const lista = document.getElementById('lista-ajustes');
-  lista.innerHTML = JUGADORES_LISTA.map(function(nombre) {
-    const pts = ajustesActuales[nombre] || 0;
-    const ptsClass = pts > 0 ? '' : pts < 0 ? 'neg' : 'zero';
-    const ptsStr = pts > 0 ? '+'+pts : String(pts);
-    return '<div class="jug-row">'
-      +'<span class="jug-nombre">'+nombre+'</span>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<span class="jug-pts '+ptsClass+'">'+ptsStr+'</span>'
-      +'<button class="jug-edit" onclick="editarJugador(\''+nombre+'\')">Editar</button>'
-      +'</div></div>';
+function abrirLista(){renderListaAjustes();document.getElementById('modal-lista').style.display='flex';}
+function renderListaAjustes(){
+  document.getElementById('lista-ajustes').innerHTML=JUGADORES_LISTA.map(function(nombre){
+    const pts=ajustesActuales[nombre]||0,cls=pts>0?'':pts<0?'neg':'zero';
+    return '<div class="jug-row"><span class="jug-nombre">'+nombre+'</span><div style="display:flex;align-items:center;gap:8px"><span class="jug-pts '+cls+'">'+(pts>0?'+':'')+pts+'</span><button class="jug-edit" onclick="editarJugador(\''+nombre+'\')">Editar</button></div></div>';
   }).join('');
 }
-
-function editarJugador(nombre) {
-  cerrarModal('modal-lista');
-  document.getElementById('sel-jugador').value = nombre;
-  onJugadorChange();
-  document.getElementById('modal-ajuste').style.display='flex';
+function editarJugador(nombre){cerrarModal('modal-lista');document.getElementById('sel-jugador').value=nombre;onJugadorChange();document.getElementById('modal-ajuste').style.display='flex';}
+function abrirAjusteIndividual(){cerrarModal('modal-lista');document.getElementById('sel-jugador').value='';document.getElementById('inp-ajuste').value='';document.getElementById('info-ajuste').textContent='Sin ajuste previo';document.getElementById('modal-ajuste').style.display='flex';}
+function onJugadorChange(){
+  const nombre=document.getElementById('sel-jugador').value,info=document.getElementById('info-ajuste');
+  if(nombre&&ajustesActuales[nombre]&&ajustesActuales[nombre]!==0){const val=ajustesActuales[nombre];info.textContent='Ajuste actual: '+(val>0?'+':'')+val+' pts';document.getElementById('inp-ajuste').value=val;}
+  else{info.textContent='Sin ajuste previo';document.getElementById('inp-ajuste').value='';}
 }
-
-function abrirAjusteIndividual() {
-  cerrarModal('modal-lista');
-  document.getElementById('sel-jugador').value='';
-  document.getElementById('inp-ajuste').value='';
-  document.getElementById('info-ajuste').textContent='Sin ajuste previo';
-  document.getElementById('modal-ajuste').style.display='flex';
-}
-
-function onJugadorChange() {
-  const nombre = document.getElementById('sel-jugador').value;
-  const info = document.getElementById('info-ajuste');
-  if (nombre && ajustesActuales[nombre] !== undefined && ajustesActuales[nombre] !== 0) {
-    const val = ajustesActuales[nombre];
-    info.textContent = 'Ajuste actual: ' + (val > 0 ? '+' : '') + val + ' pts';
-    document.getElementById('inp-ajuste').value = val;
-  } else {
-    info.textContent = 'Sin ajuste previo';
-    document.getElementById('inp-ajuste').value = '';
-  }
-}
-
-async function guardarAjuste() {
-  const nombre = document.getElementById('sel-jugador').value;
-  const ajuste = parseInt(document.getElementById('inp-ajuste').value);
-  if (!nombre) { toast('Selecciona un participante', true); return; }
-  if (isNaN(ajuste)) { toast('Ingresa un número válido', true); return; }
-  const url = SCRIPT_URL+'?action=saveAjuste&nombre='+encodeURIComponent(nombre)+'&ajuste='+ajuste;
-  fetch(url, {mode:'no-cors'});
-  new Image().src = url;
-  ajustesActuales[nombre] = ajuste;
-  const signo = ajuste >= 0 ? '+' : '';
-  toast(nombre+': '+signo+ajuste+' pts guardado');
+async function guardarAjuste(){
+  const nombre=document.getElementById('sel-jugador').value,ajuste=parseInt(document.getElementById('inp-ajuste').value);
+  if(!nombre){toast('Selecciona un participante',true);return;}
+  if(isNaN(ajuste)){toast('Ingresa un número válido',true);return;}
+  const url=SCRIPT_URL+'?action=saveAjuste&nombre='+encodeURIComponent(nombre)+'&ajuste='+ajuste;
+  fetch(url,{mode:'no-cors'});new Image().src=url;
+  ajustesActuales[nombre]=ajuste;
+  toast(nombre+': '+(ajuste>=0?'+':'')+ajuste+' pts guardado');
   cerrarModal('modal-ajuste');
 }
+function cerrarModal(id){document.getElementById(id).style.display='none';}
 
-function cerrarModal(id) {
-  document.getElementById(id).style.display='none';
-}
-
-render();
-syncFromSheet();
+// ===== INIT =====
+syncFromSheet().then(function(){render();});
 cargarAjustes();
-setInterval(syncFromSheet, 30000);
+setInterval(syncFromSheet,30000);
 </script>
 </body>
 </html>

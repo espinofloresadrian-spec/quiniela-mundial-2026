@@ -341,8 +341,7 @@ async function syncFromSheet() {
     let changed=false;
     for(const[idx,res] of Object.entries(data)){
       const id=parseInt(idx);
-      if(!isNaN(id)&&Array.isArray(res)){local[id]=res;changed=true;}
-    }
+if(!isNaN(id)&&Array.isArray(res)){local[id]=res;if(id>=100)resNuevas[String(id)]=res;changed=true;}    }
     if(changed){localStorage.setItem('adm_res',JSON.stringify(local));render();}
   } catch(e){}
 }

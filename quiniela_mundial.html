@@ -198,15 +198,23 @@ const partidos16 = [
 ];
 
 const partidos8 = [
-  {idx:200, p16a:102, p16b:105, k:'2026-07-04T17:00:00Z'},
-  {idx:201, p16a:100, p16b:103, k:'2026-07-05T17:00:00Z'},
-  {idx:202, p16a:111, p16b:110, k:'2026-07-04T21:00:00Z'},
-  {idx:203, p16a:109, p16b:108, k:'2026-07-05T21:00:00Z'},
-  {idx:204, p16a:101, p16b:104, k:'2026-07-06T17:00:00Z'},
-  {idx:205, p16a:106, p16b:107, k:'2026-07-07T17:00:00Z'},
-  {idx:206, p16a:114, p16b:113, k:'2026-07-06T21:00:00Z'},
-  {idx:207, p16a:112, p16b:115, k:'2026-07-07T21:00:00Z'},
+  {idx:200, p16a:102, p16b:105, k:'2026-07-04T22:00:00Z'},  // sab 4 jul 3pm PDT - Francia 1-0 Paraguay
+  {idx:201, p16a:100, p16b:103, k:'2026-07-04T18:00:00Z'},  // sab 4 jul 11am PDT - Marruecos 3-0 Canada
+  {idx:202, p16a:111, p16b:110, k:'2026-07-07T20:00:00Z'},  // lun 6 jul 1pm PDT - Portugal vs España
+  {idx:203, p16a:109, p16b:108, k:'2026-07-07T01:00:00Z'},  // lun 6 jul 6pm PDT - USA vs Belgica
+  {idx:204, p16a:101, p16b:104, k:'2026-07-05T21:00:00Z'},  // dom 5 jul 2pm PDT - Noruega 2-1 Brasil
+  {idx:205, p16a:106, p16b:107, k:'2026-07-06T01:00:00Z'},  // dom 5 jul 6pm PDT - Inglaterra 3-2 Mexico
+  {idx:206, p16a:114, p16b:113, k:'2026-07-07T17:00:00Z'},  // mar 7 jul 10am PDT - Argentina vs Egipto
+  {idx:207, p16a:112, p16b:115, k:'2026-07-07T20:00:00Z'},  // mar 7 jul 1pm PDT - Suiza vs Colombia
 ];
+
+// ===== RESULTADOS 8VOS HARDCODEADOS (ya terminados) =====
+const res8Fijos = {
+  '200': [1,0],  // Francia 1-0 Paraguay
+  '201': [3,0],  // Marruecos 3-0 Canada
+  '204': [2,1],  // Noruega 2-1 Brasil
+  '205': [3,2],  // Inglaterra 3-2 Mexico
+};
 
 const partidosCuartos = [
   {idx:300, p8a:200, p8b:201, k:'2026-07-09T16:00:00Z', sec:'Cuartos de Final'},
@@ -223,7 +231,9 @@ const partidosFinal = [
   {idx:501, pSa:400, pSb:401, k:'2026-07-19T15:00:00Z', sec:'FINAL'},
 ];
 
-const resNuevas = {}, savedRes = {};
+// Pre-cargar resultados fijos de 8vos
+const resNuevas = Object.assign({}, res8Fijos);
+const savedRes = {};
 var pros16 = {}, pros8 = {}, prosFinal = {};
 window._ajustes = {};
 

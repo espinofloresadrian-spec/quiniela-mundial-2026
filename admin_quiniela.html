@@ -132,7 +132,12 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X
 const DUR = 115 * 60 * 1000;
 let filter = 'all';
 let ajustesActuales = {};
-const resNuevas = {};
+const resNuevas = {
+  '200': [1,0],  // Francia 1-0 Paraguay
+  '201': [3,0],  // Marruecos 3-0 Canada
+  '204': [2,1],  // Noruega 2-1 Brasil
+  '205': [3,2],  // Inglaterra 3-2 Mexico
+};
 const JUGADORES_LISTA = ['Olguin','Pedro','Luis','Rafa','Alonso','Vanessa','Espino','Papa Espino','Said','Cesar','Noe','Don Jorge','Maluma','Alex','Hazael','Gamez','Alejandra','Lic Dominguez','Ray','Jesus'];
 
 // ===== BRACKET =====
@@ -257,14 +262,14 @@ const partidos = [
   {id:113,fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
   {id:114,fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
   {id:115,fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
-  {id:200,fase:'8vos',  p16a:102,p16b:105,   k:'2026-07-04T17:00:00Z'},
-  {id:201,fase:'8vos',  p16a:100,p16b:103,   k:'2026-07-05T17:00:00Z'},
-  {id:202,fase:'8vos',  p16a:111,p16b:110,   k:'2026-07-04T21:00:00Z'},
-  {id:203,fase:'8vos',  p16a:109,p16b:108,   k:'2026-07-05T21:00:00Z'},
-  {id:204,fase:'8vos',  p16a:101,p16b:104,   k:'2026-07-06T17:00:00Z'},
-  {id:205,fase:'8vos',  p16a:106,p16b:107,   k:'2026-07-07T17:00:00Z'},
-  {id:206,fase:'8vos',  p16a:114,p16b:113,   k:'2026-07-06T21:00:00Z'},
-  {id:207,fase:'8vos',  p16a:112,p16b:115,   k:'2026-07-07T21:00:00Z'},
+  {id:200,fase:'8vos',  p16a:102,p16b:105,   k:'2026-07-04T22:00:00Z'},
+  {id:201,fase:'8vos',  p16a:100,p16b:103,   k:'2026-07-04T18:00:00Z'},
+  {id:202,fase:'8vos',  p16a:111,p16b:110,   k:'2026-07-07T20:00:00Z'},
+  {id:203,fase:'8vos',  p16a:109,p16b:108,   k:'2026-07-07T01:00:00Z'},
+  {id:204,fase:'8vos',  p16a:101,p16b:104,   k:'2026-07-05T21:00:00Z'},
+  {id:205,fase:'8vos',  p16a:106,p16b:107,   k:'2026-07-06T01:00:00Z'},
+  {id:206,fase:'8vos',  p16a:114,p16b:113,   k:'2026-07-07T17:00:00Z'},
+  {id:207,fase:'8vos',  p16a:112,p16b:115,   k:'2026-07-07T20:00:00Z'},
   {id:300,fase:'cuartos',p8a:200,p8b:201,    k:'2026-07-09T16:00:00Z'},
   {id:301,fase:'cuartos',p8a:202,p8b:203,    k:'2026-07-10T15:00:00Z'},
   {id:302,fase:'cuartos',p8a:204,p8b:205,    k:'2026-07-11T17:00:00Z'},

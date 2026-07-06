@@ -546,7 +546,8 @@ async function renderTab16vos() {
   if(!Object.keys(pros16).length) pros16=await leerProsSheet('pros16');
   renderFaseTabla16('tbody-16vos','thead-16vos');
 }
-function render8vosTab() {
+async function render8vosTab() {
+  if (!Object.keys(pros8).length) pros8 = await leerProsSheet('pros8');
   renderDinamica(partidos8, function(p){return nombreEquipo8(p,'l');}, function(p){return nombreEquipo8(p,'v');}, pros8, 'contenido-8vos', 'Los octavos de final se mostrarán conforme avancen los 16vos');
 }
 async function renderTabFinal() {

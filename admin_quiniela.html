@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Admin Quiniela</title>
+<title>Admin Quiniela · 8vos</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0a0f0a;color:#e8f5e9;min-height:100vh;padding-bottom:70px}
@@ -73,7 +73,7 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 </head>
 <body>
 <header>
-  <div class="logo">ADMIN <span>QUINIELA</span></div>
+  <div class="logo">ADMIN <span>8VOS</span></div>
   <button class="sync-btn" onclick="syncAll()">Sincronizar todo</button>
 </header>
 <div class="status"><div class="dot" id="dot"></div><span id="stxt">Cargando...</span></div>
@@ -82,12 +82,6 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
   <button class="ftab" onclick="setFilter('pending',this)">Pendientes</button>
   <button class="ftab" onclick="setFilter('live',this)">En vivo</button>
   <button class="ftab" onclick="setFilter('done',this)">Finalizados</button>
-  <button class="ftab" onclick="setFilter('fase3',this)">Fase 3</button>
-  <button class="ftab" onclick="setFilter('16vos',this)">16vos</button>
-  <button class="ftab" onclick="setFilter('8vos',this)">8vos</button>
-  <button class="ftab" onclick="setFilter('cuartos',this)">Cuartos</button>
-  <button class="ftab" onclick="setFilter('semis',this)">Semis</button>
-  <button class="ftab" onclick="setFilter('finalfase',this)">Final</button>
 </div>
 <div class="list" id="list"></div>
 <div class="toast" id="toast"></div>
@@ -138,176 +132,21 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X
 const DUR = 115 * 60 * 1000;
 let filter = 'all';
 let ajustesActuales = {};
-const resNuevas = {
-  '200': [1,0],  // Francia 1-0 Paraguay
-  '201': [3,0],  // Marruecos 3-0 Canada
-  '204': [2,1],  // Noruega 2-1 Brasil
-  '205': [3,2],  // Inglaterra 3-2 Mexico
-};
+let avances = {};
 const JUGADORES_LISTA = ['Olguin','Pedro','Luis','Rafa','Alonso','Vanessa','Espino','Papa Espino','Said','Cesar','Noe','Don Jorge','Maluma','Alex','Hazael','Gamez','Alejandra','Lic Dominguez','Ray','Jesus'];
 
-// ===== BRACKET =====
-const p16data = [
-  {id:100,l:'Sudafrica',v:'Canada'},{id:101,l:'Brasil',v:'Japon'},
-  {id:102,l:'Alemania',v:'Paraguay'},{id:103,l:'Holanda',v:'Marruecos'},
-  {id:104,l:'Costa de Marfil',v:'Noruega'},{id:105,l:'Francia',v:'Suecia'},
-  {id:106,l:'Mexico',v:'Ecuador'},{id:107,l:'Inglaterra',v:'Congo'},
-  {id:108,l:'Belgica',v:'Senegal'},{id:109,l:'USA',v:'Bosnia'},
-  {id:110,l:'España',v:'Austria'},{id:111,l:'Portugal',v:'Croacia'},
-  {id:112,l:'Suiza',v:'Argelia'},{id:113,l:'Australia',v:'Egipto'},
-  {id:114,l:'Argentina',v:'Cabo Verde'},{id:115,l:'Colombia',v:'Ghana'},
-];
-const p8data = [
-  {id:200,p16a:102,p16b:105},{id:201,p16a:100,p16b:103},
-  {id:202,p16a:111,p16b:110},{id:203,p16a:109,p16b:108},
-  {id:204,p16a:101,p16b:104},{id:205,p16a:106,p16b:107},
-  {id:206,p16a:114,p16b:113},{id:207,p16a:112,p16b:115},
-];
-const pCuartosData = [
-  {id:300,p8a:200,p8b:201},{id:301,p8a:202,p8b:203},
-  {id:302,p8a:204,p8b:205},{id:303,p8a:206,p8b:207},
-];
-const pSemisData = [
-  {id:400,pQa:300,pQb:301},{id:401,pQa:302,pQb:303},
-];
-
-// ===== AVANCES (definidos manualmente por el admin, independiente del marcador) =====
-let avances = {}; // { idx(string): 'Nombre del equipo que avanza' }
-
-function ganador16(id) { return avances[String(id)] || null; }
-function ganador8(id) { return avances[String(id)] || null; }
-function ganadorCuarto(id) { return avances[String(id)] || null; }
-function ganadorSemi(id) { return avances[String(id)] || null; }
-
-// Devuelve {ganador, perdedor} de una semifinal usando el avance manual (400/401)
-function resultadoSemi(idxSemi) {
-  const semi=pSemisData.find(function(s){return s.id===idxSemi;}); if (!semi) return null;
-  const a=ganadorCuarto(semi.pQa), b=ganadorCuarto(semi.pQb);
-  if (!a||!b) return null;
-  const g=ganadorSemi(idxSemi); if (!g) return null;
-  const perdedor=(g===a)?b:a;
-  return {ganador:g, perdedor:perdedor};
-}
-
-function getNomL(p) {
-  if (p.fase==='8vos') {
-    const g=ganador16(p.p16a);
-    if (g) return g;
-    const x=p16data.find(function(x){return x.id===p.p16a;});
-    return x?x.l+'/'+x.v:'?';
-  }
-  if (p.fase==='cuartos') return ganador8(p.p8a)||'Gan 8vo '+(p.p8a-199);
-  if (p.fase==='semis') return ganadorCuarto(p.pQa)||'Gan Cuarto '+(p.pQa-299);
-  if (p.fase==='finalfase') {
-    const r=resultadoSemi(p.pSa); if (!r) return '?';
-    return p.id===500?r.perdedor:r.ganador;
-  }
-  return p.l;
-}
-function getNomV(p) {
-  if (p.fase==='8vos') {
-    const g=ganador16(p.p16b);
-    if (g) return g;
-    const x=p16data.find(function(x){return x.id===p.p16b;});
-    return x?x.l+'/'+x.v:'?';
-  }
-  if (p.fase==='cuartos') return ganador8(p.p8b)||'Gan 8vo '+(p.p8b-199);
-  if (p.fase==='semis') return ganadorCuarto(p.pQb)||'Gan Cuarto '+(p.pQb-299);
-  if (p.fase==='finalfase') {
-    const r=resultadoSemi(p.pSb); if (!r) return '?';
-    return p.id===500?r.perdedor:r.ganador;
-  }
-  return p.v;
-}
-
-// ¿Este partido define un avance manual? (16vos, 8vos, cuartos, semis)
-function esFaseConAvance(fase) { return fase==='16vos'||fase==='8vos'||fase==='cuartos'||fase==='semis'; }
-
-async function cargarAvances(){
-  try{const r=await fetch(SCRIPT_URL+'?action=getAvances&t='+Date.now());avances=await r.json();}
-  catch(e){avances={};}
-}
-
-function setAvance(id,equipo){
-  if(!equipo||equipo==='?'||equipo.indexOf('/')>-1||equipo.indexOf('Gan ')===0) return;
-  avances[String(id)]=equipo;
-  const url=SCRIPT_URL+'?action=saveAvance&idx='+id+'&equipo='+encodeURIComponent(equipo);
-  fetch(url,{mode:'no-cors'}); new Image().src=url;
-  toast(equipo+' avanza ✔ guardado');
-  render();
-}
-
-function avanceHtml(p, lNom, vNom) {
-  if (!esFaseConAvance(p.fase)) return '';
-  if (!lNom || lNom==='?' || vNom==='?' || lNom.indexOf('/')>-1 || vNom.indexOf('/')>-1 || lNom.indexOf('Gan ')===0 || vNom.indexOf('Gan ')===0) return '';
-  const actual = avances[String(p.id)] || '';
-  return '<div class="avance-box"><div class="avance-label">¿Quién avanza?</div>'
-    +'<div class="avance-btns">'
-    +'<button class="avance-btn'+(actual===lNom?' sel':'')+'" onclick="setAvance('+p.id+',\''+lNom.replace(/'/g,"\\'")+'\')">'+lNom+'</button>'
-    +'<button class="avance-btn'+(actual===vNom?' sel':'')+'" onclick="setAvance('+p.id+',\''+vNom.replace(/'/g,"\\'")+'\')">'+vNom+'</button>'
-    +'</div>'
-    +(actual?'<div class="avance-actual">Avanza: '+actual+'</div>':'')
-    +'</div>';
-}
-
-// ===== TODOS LOS PARTIDOS =====
+// ===== SOLO 8VOS =====
+// Los 16vos ya se jugaron: aquí los equipos van directos con su nombre real.
+// idx conserva la numeración original (200-207) para no perder resultados ya guardados en el Sheet.
 const partidos = [
-  {id:0,  fase:'fase3', l:'Suiza',       v:'Canada',         k:'2026-06-25T01:00:00Z'},
-  {id:1,  fase:'fase3', l:'Bosnia',      v:'Catar',          k:'2026-06-25T01:00:00Z'},
-  {id:2,  fase:'fase3', l:'Marruecos',   v:'Haiti',          k:'2026-06-25T01:00:00Z'},
-  {id:3,  fase:'fase3', l:'Escocia',     v:'Brasil',         k:'2026-06-26T00:00:00Z'},
-  {id:4,  fase:'fase3', l:'Sudafrica',   v:'Corea del Sur',  k:'2026-06-26T00:00:00Z'},
-  {id:5,  fase:'fase3', l:'Rep. Checa',  v:'Mexico',         k:'2026-06-26T00:00:00Z'},
-  {id:6,  fase:'fase3', l:'Curazao',     v:'C. Marfil',      k:'2026-06-25T20:00:00Z'},
-  {id:7,  fase:'fase3', l:'Ecuador',     v:'Alemania',       k:'2026-06-25T20:00:00Z'},
-  {id:8,  fase:'fase3', l:'Tunez',       v:'Holanda',        k:'2026-06-26T01:00:00Z'},
-  {id:9,  fase:'fase3', l:'Japon',       v:'Suecia',         k:'2026-06-26T01:00:00Z'},
-  {id:10, fase:'fase3', l:'Turkia',      v:'USA',            k:'2026-06-26T04:00:00Z'},
-  {id:11, fase:'fase3', l:'Paraguay',    v:'Australia',      k:'2026-06-26T04:00:00Z'},
-  {id:12, fase:'fase3', l:'Noruega',     v:'Francia',        k:'2026-06-26T19:00:00Z'},
-  {id:13, fase:'fase3', l:'Senegal',     v:'Irak',           k:'2026-06-26T19:00:00Z'},
-  {id:14, fase:'fase3', l:'Cabo Verde',  v:'Arabia Saudita', k:'2026-06-27T00:00:00Z'},
-  {id:15, fase:'fase3', l:'Uruguay',     v:'Espana',         k:'2026-06-27T00:00:00Z'},
-  {id:16, fase:'fase3', l:'N. Zelanda',  v:'Belgica',        k:'2026-06-27T03:00:00Z'},
-  {id:17, fase:'fase3', l:'Egipto',      v:'Iran',           k:'2026-06-27T03:00:00Z'},
-  {id:18, fase:'fase3', l:'Panama',      v:'Inglaterra',     k:'2026-06-27T21:00:00Z'},
-  {id:19, fase:'fase3', l:'Croacia',     v:'Ghana',          k:'2026-06-27T21:00:00Z'},
-  {id:20, fase:'fase3', l:'Colombia',    v:'Portugal',       k:'2026-06-28T00:30:00Z'},
-  {id:21, fase:'fase3', l:'Congo',       v:'Uzbekistan',     k:'2026-06-28T00:30:00Z'},
-  {id:22, fase:'fase3', l:'Argelia',     v:'Austria',        k:'2026-06-28T03:00:00Z'},
-  {id:23, fase:'fase3', l:'Jordania',    v:'Argentina',      k:'2026-06-28T03:00:00Z'},
-  {id:100,fase:'16vos', l:'Sudafrica',       v:'Canada',     k:'2026-06-28T19:00:00Z'},
-  {id:101,fase:'16vos', l:'Brasil',          v:'Japon',      k:'2026-06-29T17:00:00Z'},
-  {id:102,fase:'16vos', l:'Alemania',        v:'Paraguay',   k:'2026-06-29T20:30:00Z'},
-  {id:103,fase:'16vos', l:'Holanda',         v:'Marruecos',  k:'2026-06-30T01:00:00Z'},
-  {id:104,fase:'16vos', l:'Costa de Marfil', v:'Noruega',    k:'2026-06-30T17:00:00Z'},
-  {id:105,fase:'16vos', l:'Francia',         v:'Suecia',     k:'2026-06-30T21:00:00Z'},
-  {id:106,fase:'16vos', l:'Mexico',          v:'Ecuador',    k:'2026-07-01T01:00:00Z'},
-  {id:107,fase:'16vos', l:'Inglaterra',      v:'Congo',      k:'2026-07-01T16:00:00Z'},
-  {id:108,fase:'16vos', l:'Belgica',         v:'Senegal',    k:'2026-07-01T20:00:00Z'},
-  {id:109,fase:'16vos', l:'USA',             v:'Bosnia',     k:'2026-07-02T00:00:00Z'},
-  {id:110,fase:'16vos', l:'España',          v:'Austria',    k:'2026-07-02T19:00:00Z'},
-  {id:111,fase:'16vos', l:'Portugal',        v:'Croacia',    k:'2026-07-02T23:00:00Z'},
-  {id:112,fase:'16vos', l:'Suiza',           v:'Argelia',    k:'2026-07-03T03:00:00Z'},
-  {id:113,fase:'16vos', l:'Australia',       v:'Egipto',     k:'2026-07-03T18:00:00Z'},
-  {id:114,fase:'16vos', l:'Argentina',       v:'Cabo Verde', k:'2026-07-03T22:00:00Z'},
-  {id:115,fase:'16vos', l:'Colombia',        v:'Ghana',      k:'2026-07-04T01:30:00Z'},
-  {id:200,fase:'8vos',  p16a:102,p16b:105,   k:'2026-07-04T22:00:00Z'},
-  {id:201,fase:'8vos',  p16a:100,p16b:103,   k:'2026-07-04T18:00:00Z'},
-  {id:202,fase:'8vos',  p16a:111,p16b:110,   k:'2026-07-07T20:00:00Z'},
-  {id:203,fase:'8vos',  p16a:109,p16b:108,   k:'2026-07-07T01:00:00Z'},
-  {id:204,fase:'8vos',  p16a:101,p16b:104,   k:'2026-07-05T21:00:00Z'},
-  {id:205,fase:'8vos',  p16a:106,p16b:107,   k:'2026-07-06T01:00:00Z'},
-  {id:206,fase:'8vos',  p16a:114,p16b:113,   k:'2026-07-07T17:00:00Z'},
-  {id:207,fase:'8vos',  p16a:112,p16b:115,   k:'2026-07-07T20:00:00Z'},
-  {id:300,fase:'cuartos',p8a:200,p8b:201,    k:'2026-07-09T16:00:00Z'},
-  {id:301,fase:'cuartos',p8a:202,p8b:203,    k:'2026-07-10T15:00:00Z'},
-  {id:302,fase:'cuartos',p8a:204,p8b:205,    k:'2026-07-11T17:00:00Z'},
-  {id:303,fase:'cuartos',p8a:206,p8b:207,    k:'2026-07-11T21:00:00Z'},
-  {id:400,fase:'semis',  pQa:300,pQb:301,    k:'2026-07-14T18:00:00Z'},
-  {id:401,fase:'semis',  pQa:302,pQb:303,    k:'2026-07-15T18:00:00Z'},
-  {id:500,fase:'finalfase',pSa:400,pSb:401,  k:'2026-07-18T16:00:00Z'},
-  {id:501,fase:'finalfase',pSa:400,pSb:401,  k:'2026-07-19T15:00:00Z'},
+  {id:200, l:'Paraguay',  v:'Francia',    k:'2026-07-04T22:00:00Z'},
+  {id:201, l:'Canada',    v:'Marruecos',  k:'2026-07-04T18:00:00Z'},
+  {id:202, l:'Portugal',  v:'España',     k:'2026-07-07T20:00:00Z'},
+  {id:203, l:'USA',       v:'Belgica',    k:'2026-07-07T01:00:00Z'},
+  {id:204, l:'Brasil',    v:'Noruega',    k:'2026-07-05T21:00:00Z'},
+  {id:205, l:'Mexico',    v:'Inglaterra', k:'2026-07-06T01:00:00Z'},
+  {id:206, l:'Argentina', v:'Egipto',     k:'2026-07-07T17:00:00Z'},
+  {id:207, l:'Suiza',     v:'Colombia',   k:'2026-07-07T20:00:00Z'},
 ];
 
 let local = JSON.parse(localStorage.getItem('adm_res') || '{}');
@@ -321,9 +160,25 @@ function getState(p) {
   return {s:'soon',kick};
 }
 
-function labelPartido(p) {
-  const fases={fase3:'F3','16vos':'16vos','8vos':'8vos',cuartos:'Cuartos',semis:'Semis',finalfase:'Final'};
-  return (fases[p.fase]||'')+' P'+p.id;
+function labelPartido(p) { return '8vo · '+p.l+' vs '+p.v; }
+
+function setAvance(id,equipo){
+  avances[String(id)]=equipo;
+  const url=SCRIPT_URL+'?action=saveAvance&idx='+id+'&equipo='+encodeURIComponent(equipo);
+  fetch(url,{mode:'no-cors'}); new Image().src=url;
+  toast(equipo+' avanza a Cuartos ✔ guardado');
+  render();
+}
+
+function avanceHtml(p) {
+  const actual = avances[String(p.id)] || '';
+  return '<div class="avance-box"><div class="avance-label">¿Quién avanza a Cuartos?</div>'
+    +'<div class="avance-btns">'
+    +'<button class="avance-btn'+(actual===p.l?' sel':'')+'" onclick="setAvance('+p.id+',\''+p.l.replace(/'/g,"\\'")+'\')">'+p.l+'</button>'
+    +'<button class="avance-btn'+(actual===p.v?' sel':'')+'" onclick="setAvance('+p.id+',\''+p.v.replace(/'/g,"\\'")+'\')">'+p.v+'</button>'
+    +'</div>'
+    +(actual?'<div class="avance-actual">Avanza: '+actual+'</div>':'')
+    +'</div>';
 }
 
 function render() {
@@ -333,13 +188,12 @@ function render() {
     if (filter==='pending') return st.s==='soon';
     if (filter==='live') return st.s==='live';
     if (filter==='done') return st.s==='done';
-    return filter==='all'||p.fase===filter;
+    return true;
   });
   if (!list.length){c.innerHTML='<div class="empty">Sin partidos en esta categoría</div>';return;}
   c.innerHTML=list.map(function(p){
     const st=getState(p);
     const editable=Date.now()>=new Date(p.k).getTime();
-    const lNom=getNomL(p), vNom=getNomV(p);
     let badge='',cardCls='';
     if (st.s==='live'){badge='<div class="badge b-live">EN VIVO '+st.min+"'</div>";cardCls='live';}
     else if (st.s==='done'){badge='<div class="badge b-done">FINALIZADO</div>';cardCls='done';}
@@ -361,7 +215,7 @@ function render() {
     }
     return '<div class="card '+cardCls+'">'
       +'<div class="card-head"><div class="card-num">'+labelPartido(p)+'</div>'+badge+'</div>'
-      +'<div class="card-body"><div class="teams"><div class="tname">'+lNom+'</div><div class="vs">VS</div><div class="tname">'+vNom+'</div></div>'+body+avanceHtml(p,lNom,vNom)+'</div></div>';
+      +'<div class="card-body"><div class="teams"><div class="tname">'+p.l+'</div><div class="vs">VS</div><div class="tname">'+p.v+'</div></div>'+body+avanceHtml(p)+'</div></div>';
   }).join('');
 }
 
@@ -372,10 +226,9 @@ function save(id) {
   const btn=document.getElementById('btn'+id);
   if(btn){btn.textContent='Enviando...';btn.classList.add('sending');}
   local[id]=[lv,vv];
-  resNuevas[String(id)]=[lv,vv]; // actualizar dinamico inmediatamente
   localStorage.setItem('adm_res',JSON.stringify(local));
   const p=partidos.find(function(p){return p.id===id;});
-  sendToSheet(id,lv,vv,getNomL(p)||'?',getNomV(p)||'?');
+  sendToSheet(id,lv,vv,p.l,p.v);
   setTimeout(function(){toast(labelPartido(p)+': '+lv+'-'+vv+' guardado');render();},600);
 }
 
@@ -404,7 +257,7 @@ async function syncAll(){
   let i=0;
   for(const[id,res] of Object.entries(local)){
     const p=partidos.find(function(p){return p.id===parseInt(id);});
-    sendToSheet(parseInt(id),res[0],res[1],p?getNomL(p):'?',p?getNomV(p):'?');
+    if(p) sendToSheet(parseInt(id),res[0],res[1],p.l,p.v);
     await new Promise(function(r){setTimeout(r,400);}); i++;
   }
   toast('Sincronizados '+i+' resultados');
@@ -426,8 +279,8 @@ function toast(msg,err){
   setTimeout(function(){t.className='toast'+(err?' err':'');},2500);
 }
 function exportar(){
-  let txt='QUINIELA MUNDIAL 2026\n\n';
-  partidos.forEach(function(p){const r=local[p.id];txt+=labelPartido(p)+' '+getNomL(p)+' vs '+getNomV(p)+': '+(r?r[0]+'-'+r[1]:'Pendiente')+'\n';});
+  let txt='QUINIELA MUNDIAL 2026 · 8VOS\n\n';
+  partidos.forEach(function(p){const r=local[p.id];txt+=p.l+' vs '+p.v+': '+(r?r[0]+'-'+r[1]:'Pendiente')+(avances[String(p.id)]?' (avanza: '+avances[String(p.id)]+')':'')+'\n';});
   if(navigator.share) navigator.share({text:txt});
   else if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){toast('Copiado');});
 }
@@ -439,15 +292,19 @@ async function syncFromSheet(){
     let changed=false;
     for(const[idx,res] of Object.entries(data)){
       const id=parseInt(idx);
-      if(!isNaN(id)&&Array.isArray(res)){
+      if(!isNaN(id)&&Array.isArray(res)&&partidos.some(function(p){return p.id===id;})){
         local[id]=res;
-        if(id>=100) resNuevas[String(id)]=res;
         changed=true;
       }
     }
     if(changed){localStorage.setItem('adm_res',JSON.stringify(local));render();}
     setStatus('Listo',false);
   }catch(e){setStatus('Sin conexion',true);}
+}
+
+async function cargarAvances(){
+  try{const r=await fetch(SCRIPT_URL+'?action=getAvances&t='+Date.now());avances=await r.json();}
+  catch(e){avances={};}
 }
 
 // ===== AJUSTES =====

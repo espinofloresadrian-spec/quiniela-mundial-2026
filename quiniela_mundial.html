@@ -239,36 +239,29 @@ window._ajustes = {};
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmhRq7q-L88iAdPva9X5FIej1vStWn7GUKgBMfJ1_8t2YI9mRdBGO2-Xxjyfp7J2dc/exec';
 
-// ===== GANADORES =====
-function ganador16(idx16) {
-  const res = resNuevas[String(idx16)]; if (!res) return null;
-  const p = partidos16.find(function(p){return p.idx===idx16;}); if (!p) return null;
-  return res[0]>res[1]?p.l:p.v;
-}
-function ganador8(idx8) {
-  const res = resNuevas[String(idx8)]; if (!res) return null;
-  const p = partidos8.find(function(p){return p.idx===idx8;}); if (!p) return null;
-  const lN=ganador16(p.p16a), vN=ganador16(p.p16b);
-  if (!lN||!vN) return null;
-  return res[0]>res[1]?lN:vN;
-}
-function ganadorCuarto(idx) {
-  const res = resNuevas[String(idx)]; if (!res) return null;
-  const p = partidosCuartos.find(function(p){return p.idx===idx;}); if (!p) return null;
-  const lN=ganador8(p.p8a), vN=ganador8(p.p8b);
-  if (!lN||!vN) return null;
-  return res[0]>res[1]?lN:vN;
-}
+// ===== AVANCES (definidos manualmente por el admin en el sheet "Avances") =====
+var avances = {}; // { idx(string): 'Nombre del equipo que avanza' }
+
+function ganador16(idx16) { return avances[String(idx16)] || null; }
+function ganador8(idx8) { return avances[String(idx8)] || null; }
+function ganadorCuarto(idx) { return avances[String(idx)] || null; }
+function ganadorSemi(idx) { return avances[String(idx)] || null; }
 function nombreEq8(p8, lado) { return ganador16(lado==='l'?p8.p16a:p8.p16b); }
 function nombreEqCuarto(pC, lado) { return ganador8(lado==='l'?pC.p8a:pC.p8b); }
 function nombreEqSemi(pS, lado) { return ganadorCuarto(lado==='l'?pS.pQa:pS.pQb); }
+// Devuelve {ganador, perdedor} de una semifinal usando el avance manual (idx 400/401)
+function resultadoSemi(idxSemi) {
+  const semi=partidosSemis.find(function(s){return s.idx===idxSemi;}); if (!semi) return null;
+  const a=ganadorCuarto(semi.pQa), b=ganadorCuarto(semi.pQb);
+  if (!a||!b) return null;
+  const g=ganadorSemi(idxSemi); if (!g) return null;
+  return {ganador:g, perdedor:(g===a)?b:a};
+}
 function nombreEqFinal(pF, lado) {
   const idxS=lado==='l'?pF.pSa:pF.pSb;
-  const semi=partidosSemis.find(function(s){return s.idx===idxS;}); if (!semi) return null;
-  const res=resNuevas[String(idxS)]; if (!res) return null;
-  const lN=ganadorCuarto(semi.pQa), vN=ganadorCuarto(semi.pQb); if (!lN||!vN) return null;
-  if (pF.sec==='3er Lugar') return res[0]>res[1]?vN:lN;
-  return res[0]>res[1]?lN:vN;
+  const r=resultadoSemi(idxS); if (!r) return null;
+  if (pF.sec==='3er Lugar') return r.perdedor;
+  return r.ganador;
 }
 
 // ===== CALCULOS =====
@@ -472,6 +465,15 @@ async function leerProsSheet(action) {
   } catch(e){return {};}
 }
 
+// ===== AVANCES =====
+async function leerAvances() {
+  try {
+    const r=await fetch(APPS_SCRIPT_URL+'?action=getAvances&t='+Date.now());
+    avances=await r.json();
+    refreshActive();
+  } catch(e){ avances=avances||{}; }
+}
+
 // ===== FETCH =====
 async function fetchSheetResults() {
   try {
@@ -605,11 +607,13 @@ function recalcular(){fetchSheetResults();}
 // ===== INIT =====
 renderGeneral();
 updateLiveBadge();
+leerAvances();
 Promise.all([leerProsSheet('pros8'), leerProsSheet('pros16')]).then(function(results){
   pros8=results[0]; pros16=results[1];
   fetchSheetResults();
 });
 setInterval(function(){fetchSheetResults();updateLiveBadge();},10000);
+setInterval(leerAvances,20000);
 </script>
 </body>
 </html>

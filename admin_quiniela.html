@@ -63,6 +63,12 @@ header{background:#0d1f0d;border-bottom:2px solid #00C853;padding:14px 16px;disp
 .jug-pts{font-size:18px;font-weight:700;color:#FFD600}
 .jug-pts.neg{color:#FF1744}.jug-pts.zero{color:#6b8f6b}
 .jug-edit{padding:4px 12px;border-radius:6px;background:transparent;border:1px solid #2a3a2a;color:#6b8f6b;font-size:12px;cursor:pointer}
+.avance-box{margin-top:12px;padding:10px;border-radius:10px;background:#0d1a0d;border:1px dashed #2a3a2a}
+.avance-label{font-size:11px;color:#6b8f6b;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.avance-btns{display:flex;gap:8px}
+.avance-btn{flex:1;padding:10px 6px;border-radius:8px;background:transparent;border:1px solid #2a3a2a;color:#e8f5e9;font-size:13px;font-weight:600;cursor:pointer}
+.avance-btn.sel{background:#00C853;color:#000;border-color:#00C853}
+.avance-actual{font-size:11px;color:#FFD600;margin-top:8px;text-align:center}
 </style>
 </head>
 <body>
@@ -165,24 +171,22 @@ const pSemisData = [
   {id:400,pQa:300,pQb:301},{id:401,pQa:302,pQb:303},
 ];
 
-function ganador16(id) {
-  const res=resNuevas[String(id)]; if (!res) return null;
-  const p=p16data.find(function(x){return x.id===id;}); if (!p) return null;
-  return res[0]>res[1]?p.l:p.v;
-}
-function ganador8(id) {
-  const res=resNuevas[String(id)]; if (!res) return null;
-  const p=p8data.find(function(x){return x.id===id;}); if (!p) return null;
-  const l=ganador16(p.p16a), v=ganador16(p.p16b);
-  if (!l||!v) return null;
-  return res[0]>res[1]?l:v;
-}
-function ganadorCuarto(id) {
-  const res=resNuevas[String(id)]; if (!res) return null;
-  const p=pCuartosData.find(function(x){return x.id===id;}); if (!p) return null;
-  const l=ganador8(p.p8a), v=ganador8(p.p8b);
-  if (!l||!v) return null;
-  return res[0]>res[1]?l:v;
+// ===== AVANCES (definidos manualmente por el admin, independiente del marcador) =====
+let avances = {}; // { idx(string): 'Nombre del equipo que avanza' }
+
+function ganador16(id) { return avances[String(id)] || null; }
+function ganador8(id) { return avances[String(id)] || null; }
+function ganadorCuarto(id) { return avances[String(id)] || null; }
+function ganadorSemi(id) { return avances[String(id)] || null; }
+
+// Devuelve {ganador, perdedor} de una semifinal usando el avance manual (400/401)
+function resultadoSemi(idxSemi) {
+  const semi=pSemisData.find(function(s){return s.id===idxSemi;}); if (!semi) return null;
+  const a=ganadorCuarto(semi.pQa), b=ganadorCuarto(semi.pQb);
+  if (!a||!b) return null;
+  const g=ganadorSemi(idxSemi); if (!g) return null;
+  const perdedor=(g===a)?b:a;
+  return {ganador:g, perdedor:perdedor};
 }
 
 function getNomL(p) {
@@ -195,10 +199,8 @@ function getNomL(p) {
   if (p.fase==='cuartos') return ganador8(p.p8a)||'Gan 8vo '+(p.p8a-199);
   if (p.fase==='semis') return ganadorCuarto(p.pQa)||'Gan Cuarto '+(p.pQa-299);
   if (p.fase==='finalfase') {
-    const semi=pSemisData.find(function(s){return s.id===p.pSa;}); if (!semi) return '?';
-    const res=resNuevas[String(p.pSa)]; if (!res) return '?';
-    const l=ganadorCuarto(semi.pQa), v=ganadorCuarto(semi.pQb); if (!l||!v) return '?';
-    return p.id===500?(res[0]>res[1]?v:l):(res[0]>res[1]?l:v);
+    const r=resultadoSemi(p.pSa); if (!r) return '?';
+    return p.id===500?r.perdedor:r.ganador;
   }
   return p.l;
 }
@@ -212,12 +214,40 @@ function getNomV(p) {
   if (p.fase==='cuartos') return ganador8(p.p8b)||'Gan 8vo '+(p.p8b-199);
   if (p.fase==='semis') return ganadorCuarto(p.pQb)||'Gan Cuarto '+(p.pQb-299);
   if (p.fase==='finalfase') {
-    const semi=pSemisData.find(function(s){return s.id===p.pSb;}); if (!semi) return '?';
-    const res=resNuevas[String(p.pSb)]; if (!res) return '?';
-    const l=ganadorCuarto(semi.pQa), v=ganadorCuarto(semi.pQb); if (!l||!v) return '?';
-    return p.id===500?(res[0]>res[1]?l:v):(res[0]>res[1]?v:l);
+    const r=resultadoSemi(p.pSb); if (!r) return '?';
+    return p.id===500?r.perdedor:r.ganador;
   }
   return p.v;
+}
+
+// ¿Este partido define un avance manual? (16vos, 8vos, cuartos, semis)
+function esFaseConAvance(fase) { return fase==='16vos'||fase==='8vos'||fase==='cuartos'||fase==='semis'; }
+
+async function cargarAvances(){
+  try{const r=await fetch(SCRIPT_URL+'?action=getAvances&t='+Date.now());avances=await r.json();}
+  catch(e){avances={};}
+}
+
+function setAvance(id,equipo){
+  if(!equipo||equipo==='?'||equipo.indexOf('/')>-1||equipo.indexOf('Gan ')===0) return;
+  avances[String(id)]=equipo;
+  const url=SCRIPT_URL+'?action=saveAvance&idx='+id+'&equipo='+encodeURIComponent(equipo);
+  fetch(url,{mode:'no-cors'}); new Image().src=url;
+  toast(equipo+' avanza ✔ guardado');
+  render();
+}
+
+function avanceHtml(p, lNom, vNom) {
+  if (!esFaseConAvance(p.fase)) return '';
+  if (!lNom || lNom==='?' || vNom==='?' || lNom.indexOf('/')>-1 || vNom.indexOf('/')>-1 || lNom.indexOf('Gan ')===0 || vNom.indexOf('Gan ')===0) return '';
+  const actual = avances[String(p.id)] || '';
+  return '<div class="avance-box"><div class="avance-label">¿Quién avanza?</div>'
+    +'<div class="avance-btns">'
+    +'<button class="avance-btn'+(actual===lNom?' sel':'')+'" onclick="setAvance('+p.id+',\''+lNom.replace(/'/g,"\\'")+'\')">'+lNom+'</button>'
+    +'<button class="avance-btn'+(actual===vNom?' sel':'')+'" onclick="setAvance('+p.id+',\''+vNom.replace(/'/g,"\\'")+'\')">'+vNom+'</button>'
+    +'</div>'
+    +(actual?'<div class="avance-actual">Avanza: '+actual+'</div>':'')
+    +'</div>';
 }
 
 // ===== TODOS LOS PARTIDOS =====
@@ -331,7 +361,7 @@ function render() {
     }
     return '<div class="card '+cardCls+'">'
       +'<div class="card-head"><div class="card-num">'+labelPartido(p)+'</div>'+badge+'</div>'
-      +'<div class="card-body"><div class="teams"><div class="tname">'+lNom+'</div><div class="vs">VS</div><div class="tname">'+vNom+'</div></div>'+body+'</div></div>';
+      +'<div class="card-body"><div class="teams"><div class="tname">'+lNom+'</div><div class="vs">VS</div><div class="tname">'+vNom+'</div></div>'+body+avanceHtml(p,lNom,vNom)+'</div></div>';
   }).join('');
 }
 
@@ -454,7 +484,9 @@ function cerrarModal(id){document.getElementById(id).style.display='none';}
 // ===== INIT =====
 syncFromSheet().then(function(){render();});
 cargarAjustes();
+cargarAvances().then(function(){render();});
 setInterval(syncFromSheet,30000);
+setInterval(function(){cargarAvances().then(render);},20000);
 </script>
 </body>
 </html>

@@ -170,8 +170,8 @@ const puntosAnteriores = {
   'Ray':           { f1:16, f2:18, f3:20, f16:15 },
   'Jesus':         { f1:13, f2:15, f3:18, f16:15 },
 };
-// Marcadores exactos acumulados hasta 8vos (tomado de la hoja "Sumatoria"). Sirve de base fija
-// para el desempate; de aqui en adelante (4tos, semis, final, 3er) se le suma lo que se calcule dinamicamente.
+// Marcadores exactos acumulados hasta 4tos (tomado de la hoja "Sumatoria"). Sirve de base fija
+// para el desempate; de aqui en adelante (semis, final, 3er) se le suma lo que se calcule dinamicamente.
 const meAnteriores = {
   'Olguin':12, 'Pedro':10, 'Luis':0, 'Rafa':12, 'Alonso':13, 'Vanessa':0,
   'Espino':13, 'Papa Espino':0, 'Said':13, 'Cesar':0, 'Noe':0, 'Don Jorge':0,
@@ -311,7 +311,6 @@ function renderGeneral() {
     const ajuste=(window._ajustes&&window._ajustes[n])?window._ajustes[n]:0;
     const total=base.f1+base.f2+base.f3+base.f16+v8+v4+vs+vf+v3+ajuste;
     const me=(meAnteriores[n]||0)
-      + countExactos(n,partidosCuartos,prosFinalPorIdx)
       + countExactos(n,partidosSemis,prosFinalPorIdx)
       + countExactos(n,[partidoFinal],prosFinalPorIdx)
       + countExactos(n,[partido3er],prosFinalPorIdx);

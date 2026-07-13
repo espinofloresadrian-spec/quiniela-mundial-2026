@@ -104,6 +104,7 @@
       <table id="tabla-general">
         <thead><tr>
           <th class="num">#</th><th>JUGADOR</th>
+          <th class="pts" title="Marcadores exactos (criterio de desempate)">ME</th>
           <th class="pts col-hide-mobile">F1</th>
           <th class="pts col-hide-mobile">F2</th>
           <th class="pts col-hide-mobile">F3</th>
@@ -168,6 +169,14 @@ const puntosAnteriores = {
   'Lic Dominguez': { f1:16, f2:17, f3:13, f16:11 },
   'Ray':           { f1:16, f2:18, f3:20, f16:15 },
   'Jesus':         { f1:13, f2:15, f3:18, f16:15 },
+};
+// Marcadores exactos acumulados hasta 8vos (tomado de la hoja "Sumatoria"). Sirve de base fija
+// para el desempate; de aqui en adelante (4tos, semis, final, 3er) se le suma lo que se calcule dinamicamente.
+const meAnteriores = {
+  'Olguin':12, 'Pedro':10, 'Luis':0, 'Rafa':12, 'Alonso':13, 'Vanessa':0,
+  'Espino':13, 'Papa Espino':0, 'Said':13, 'Cesar':0, 'Noe':0, 'Don Jorge':0,
+  'Maluma':15, 'Alex':13, 'Hazael':0, 'Gamez':11, 'Alejandra':0,
+  'Lic Dominguez':0, 'Ray':14, 'Jesus':0,
 };
 const JUGADORES = Object.keys(puntosAnteriores);
 const JUGADORES_ORD = ['Maluma','Gamez','Vanessa','Ray','Olguin','Pedro','Alonso','Alex','Said','Rafa','Cesar','Don Jorge','Lic Dominguez','Jesus','Luis','Hazael','Espino','Papa Espino','Alejandra','Noe'];
@@ -255,6 +264,18 @@ function calcFase(nombre, partidosArr, prosPorIdx) {
   });
   return pts;
 }
+// Cuenta cuántos marcadores EXACTOS (2 pts) acertó nombre en esa fase — para desempate
+function countExactos(nombre, partidosArr, prosPorIdx) {
+  if (!prosPorIdx) return 0;
+  const d = prosPorIdx[nombre]; if (!d) return 0;
+  let n=0;
+  partidosArr.forEach(function(p){
+    const res=resNuevas[String(p.idx)]; if (!res) return;
+    const pro=d[String(p.idx)];
+    if (calcPtsNueva(pro,res)===2) n++;
+  });
+  return n;
+}
 
 // ===== NORMALIZAR / EMPAREJAR PRONOSTICOS POR NOMBRE DE EQUIPO =====
 function normalizar(s){ return (s||'').toString().trim().toLowerCase(); }
@@ -289,8 +310,16 @@ function renderGeneral() {
     const v3=calcFase(n,[partido3er],prosFinalPorIdx);
     const ajuste=(window._ajustes&&window._ajustes[n])?window._ajustes[n]:0;
     const total=base.f1+base.f2+base.f3+base.f16+v8+v4+vs+vf+v3+ajuste;
-    return {n,i,f1:base.f1,f2:base.f2,f3:base.f3,f16:base.f16,v8,v4,vs,vf,v3,ajuste,total};
-  }).sort(function(a,b){return b.total-a.total;});
+    const me=(meAnteriores[n]||0)
+      + countExactos(n,partidosCuartos,prosFinalPorIdx)
+      + countExactos(n,partidosSemis,prosFinalPorIdx)
+      + countExactos(n,[partidoFinal],prosFinalPorIdx)
+      + countExactos(n,[partido3er],prosFinalPorIdx);
+    return {n,i,f1:base.f1,f2:base.f2,f3:base.f3,f16:base.f16,v8,v4,vs,vf,v3,ajuste,total,me};
+  }).sort(function(a,b){
+    if (b.total!==a.total) return b.total-a.total;
+    return b.me-a.me; // desempate: mas marcadores exactos primero
+  });
   document.getElementById('tbody-general').innerHTML=rows.map(function(r,pos){
     const medal=pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'';
     const posClass=pos===0?'gold':pos===1?'silver':pos===2?'bronze':'';
@@ -299,6 +328,7 @@ function renderGeneral() {
     return '<tr>'
       +'<td class="pos '+posClass+'" style="text-align:center;font-weight:700">'+(medal||(pos+1))+'</td>'
       +'<td><div class="nombre-cell"><div class="avatar" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+r.n[0]+'</div><span>'+r.n+'</span></div></td>'
+      +'<td class="pts-cell" style="color:#8fd6ff;font-weight:700" title="Marcadores exactos (desempate)">'+r.me+'</td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f1+'</td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f2+'</td>'
       +'<td class="pts-cell col-hide-mobile" style="color:var(--muted)">'+r.f3+'</td>'
